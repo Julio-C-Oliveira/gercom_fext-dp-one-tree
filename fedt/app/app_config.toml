@@ -1,0 +1,55 @@
+[paths]
+base_path = '.'
+results_folder = 'results'
+final_results_folder = 'final_results'
+logs_folder = 'logs'
+scripts_path = 'scripts'
+client_script_path = 'fedt/app/client.py'
+dataset_path = 'energydata_complete.csv'
+graphics_path = 'graphics'
+
+[settings]
+number_of_jobs = 12
+number_of_clients = 20
+number_of_rounds = 40
+seeds = [
+    1, 2, 5, 10, 17, 20, 
+    28, 37, 42, 87, 169, 
+    428, 456, 632, 744, 
+    766, 769, 780, 987, 
+    8502, 8934, 13001, 
+    191524, 191738096, 
+    195864652, 308651098, 
+    2249696156, 2938670577, 
+    3635933258, 4130305148
+]
+epsilons = [-1.0, 10.0, 7.0, 5.0, 3.0, 1.0, 0.75, 0.5]
+aggregation_strategy = "random"
+
+[settings.sequence]
+number_of_simulations = 30
+aggregation_strategies = ["all_trees", "threshold_trees"]
+
+[settings.client]
+timeout = 420
+debug = true
+tree_depth = [4]
+evaluate_type = "mse"
+
+[settings.server]
+IP = "0.0.0.0"
+port = "50051"
+pearson_threshold = 0.3
+mean_squared_error_threhsold = 0
+threshold_type = "pearson"
+validate_dataset_size = 1000
+print_every_trees_sent = 50
+timeout = 360
+debug = true
+
+[dataset]
+train_test_split_size = 0.25
+percentage_value_of_samples_per_client = 20
+
+[scripts]
+network_interface = "eth0"
