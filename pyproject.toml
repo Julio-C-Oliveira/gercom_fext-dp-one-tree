@@ -7,57 +7,23 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fext-dp"
-version = "0.1.1"
+version = "0.2.0"
 description = "Federated Learning for Decision Trees with Differential Privacy"
 authors = [{ name = "Julio C. Oliveira", email = "julio3.oliveir@gmail.com" }]
 requires-python = ">=3.10"
 dependencies = [
     "numpy>=2.3.3",
     "pandas>=2.2.3",
-    "scipy>=1.15.2",
-    "meson>=1.4.0",
-    "meson-python==0.17.1",
-    "Cython>=3.0.12" 
+    "scikit-learn @ file:///home/julio/documents/github//scikit-learn-dp",
+    "protobuf>=6.33.0",
+    "grpcio>=1.76.0",
+    "grpcio-tools>=1.76.0",
+    "mypy-protobuf>=3.6.0",
+    "colorlog>=6.10.1",
+    "psutil>=7.1.3",
+    "matplotlib>=3.10.7",
+    "pydantic>=2.13.3"
 ]
 
-[project.scripts]
-fext-dp = "app.cli:main"
-
 [tool.setuptools]
-packages = ["app"]
-
-[paths]
-results_folder = '/'
-dataset_path = ''
-
-[settings]
-number_of_jobs = 12
-number_of_clients = 20
-number_of_rounds = 40
-seeds = [
-    1, 2, 5, 10, 17, 20, 
-    28, 37, 42, 87, 169, 
-    428, 456, 632, 744, 
-    766, 769, 780, 987, 
-    8502, 8934, 13001, 
-    191524, 191738096, 
-    195864652, 308651098, 
-    2249696156, 2938670577, 
-    3635933258, 4130305148]
-epsilons = [0.0, 1.0, 0.1, 0.05, 0.01]
-aggregation_strategies = ["all_trees", "threshold_trees"]
-
-[settings.client]
-tree_depth = 35
-evaluate_type = "mse"   # pearson or mse
-
-[settings.server]
-tree_depth = 3
-pearson_threshold = 0.39
-mean_squared_error_threhsold = 0
-threshold_type = "pearson"  # pearson or mse
-validate_dataset_size = 1000
-
-[dataset]
-train_test_split_size = 0.25
-percentage_value_of_samples_per_client = 20
+packages = ["fedt", "scripts"]
