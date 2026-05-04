@@ -3,7 +3,7 @@ syntax = "proto3";
 package fedT;
 
 service FedT {
-    rpc aggregate_trees (stream Client_Tree) returns (stream Forest_Server);
+    rpc aggregate_trees (Client_Tree) returns (stream Forest_Server);
     rpc get_server_model (Request_Server) returns (stream Forest_Server);
     rpc get_server_settings (Request_Server) returns (Server_Settings);
     rpc end_of_transmission (Request_Server) returns (OK);

@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-import fedT_pb2 as fedT__pb2
+import fedt.service.fedT_pb2 as fedT__pb2
 
 GRPC_GENERATED_VERSION = '1.80.0'
 GRPC_VERSION = grpc.__version__
@@ -34,7 +34,7 @@ class FedTStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.aggregate_trees = channel.stream_stream(
+        self.aggregate_trees = channel.unary_stream(
                 '/fedT.FedT/aggregate_trees',
                 request_serializer=fedT__pb2.Client_Tree.SerializeToString,
                 response_deserializer=fedT__pb2.Forest_Server.FromString,
@@ -59,7 +59,7 @@ class FedTStub(object):
 class FedTServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def aggregate_trees(self, request_iterator, context):
+    def aggregate_trees(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -86,7 +86,7 @@ class FedTServicer(object):
 
 def add_FedTServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'aggregate_trees': grpc.stream_stream_rpc_method_handler(
+            'aggregate_trees': grpc.unary_stream_rpc_method_handler(
                     servicer.aggregate_trees,
                     request_deserializer=fedT__pb2.Client_Tree.FromString,
                     response_serializer=fedT__pb2.Forest_Server.SerializeToString,
@@ -118,7 +118,7 @@ class FedT(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def aggregate_trees(request_iterator,
+    def aggregate_trees(request,
             target,
             options=(),
             channel_credentials=None,
@@ -128,8 +128,8 @@ class FedT(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.stream_stream(
-            request_iterator,
+        return grpc.experimental.unary_stream(
+            request,
             target,
             '/fedT.FedT/aggregate_trees',
             fedT__pb2.Client_Tree.SerializeToString,

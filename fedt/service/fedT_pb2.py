@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nfedT.proto\x12\x04\x66\x65\x64T\"#\n\x0eRequest_Server\x12\x11\n\tclient_ID\x18\x01 \x01(\x05\"A\n\x0fServer_Settings\x12\x17\n\x0ftrees_by_client\x18\x01 \x01(\x05\x12\x15\n\rcurrent_round\x18\x02 \x01(\x05\"9\n\x0b\x43lient_Tree\x12\x11\n\tclient_ID\x18\x01 \x01(\x05\x12\x17\n\x0fserialised_tree\x18\x02 \x01(\x0c\")\n\rForest_Server\x12\x18\n\x10serialised_trees\x18\x01 \x01(\x0c\"\x10\n\x02OK\x12\n\n\x02ok\x18\x01 \x01(\x05\x32\x81\x02\n\x04\x46\x65\x64T\x12=\n\x0f\x61ggregate_trees\x12\x11.fedT.Client_Tree\x1a\x13.fedT.Forest_Server(\x01\x30\x01\x12?\n\x10get_server_model\x12\x14.fedT.Request_Server\x1a\x13.fedT.Forest_Server0\x01\x12\x42\n\x13get_server_settings\x12\x14.fedT.Request_Server\x1a\x15.fedT.Server_Settings\x12\x35\n\x13\x65nd_of_transmission\x12\x14.fedT.Request_Server\x1a\x08.fedT.OKb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nfedT.proto\x12\x04\x66\x65\x64T\"#\n\x0eRequest_Server\x12\x11\n\tclient_ID\x18\x01 \x01(\x05\"A\n\x0fServer_Settings\x12\x17\n\x0ftrees_by_client\x18\x01 \x01(\x05\x12\x15\n\rcurrent_round\x18\x02 \x01(\x05\"9\n\x0b\x43lient_Tree\x12\x11\n\tclient_ID\x18\x01 \x01(\x05\x12\x17\n\x0fserialised_tree\x18\x02 \x01(\x0c\")\n\rForest_Server\x12\x18\n\x10serialised_trees\x18\x01 \x01(\x0c\"\x10\n\x02OK\x12\n\n\x02ok\x18\x01 \x01(\x05\x32\xff\x01\n\x04\x46\x65\x64T\x12;\n\x0f\x61ggregate_trees\x12\x11.fedT.Client_Tree\x1a\x13.fedT.Forest_Server0\x01\x12?\n\x10get_server_model\x12\x14.fedT.Request_Server\x1a\x13.fedT.Forest_Server0\x01\x12\x42\n\x13get_server_settings\x12\x14.fedT.Request_Server\x1a\x15.fedT.Server_Settings\x12\x35\n\x13\x65nd_of_transmission\x12\x14.fedT.Request_Server\x1a\x08.fedT.OKb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -42,5 +42,5 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_OK']._serialized_start=226
   _globals['_OK']._serialized_end=242
   _globals['_FEDT']._serialized_start=245
-  _globals['_FEDT']._serialized_end=502
+  _globals['_FEDT']._serialized_end=500
 # @@protoc_insertion_point(module_scope)
