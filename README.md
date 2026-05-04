@@ -56,6 +56,11 @@ python -m grpc_tools.protoc \
 - [ ] Ajustar os colaterais de modificar a função rpc aggregate_trees, Client_Tree é uma mensagem única ao invés de um stream agora.
     - [x] Ajustar os imports dos arquivos gerados pelo proto.
     - [ ] Ajustar o tratamento da mensagem do cliente no servidor.
+        - [x] Retirar a função get_number_of_trees_per_client, não é mais necessária, agora cada cliente treina somente uma árvore.
+        - [ ] Retirar o gerar_funcao_logaritmica do utils, se o server não vai utilizar mais ela se tornou inútil.
+        - [ ] Ajustar a get_server_settings, ela vai ser responsável por passar os parâmetros de privacidade.
+        - [ ] Alterar o argumento request_iterator do aggregate_trees no server para request. Medida paliativa: trees_by_client=1.
+        - [ ] Alterar o tratamento do request.
     - [ ] Ajustar o modo de envio da árvore para o servidor.
 
 # Esquema de Commits

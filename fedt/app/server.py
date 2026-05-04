@@ -88,7 +88,7 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         self.executor = ThreadPoolExecutor(max_workers=number_of_jobs)
 
         self.model = RandomForestRegressor(
-            n_estimators=self.get_number_of_trees_per_client(),
+            n_estimators=self.clientes_esperados,
             max_depth=3,
             warm_start=True
         )
@@ -100,15 +100,6 @@ class FedT(fedT_pb2_grpc.FedTServicer):
 
     def attach_shutdown_event(self, event):
         self.shutdown_event = event
-
-    def get_number_of_trees_per_client(self, valor_alvo=900, ponto_de_convergencia=30):
-        f, _ = utils.gerar_funcao_logaritmica(ponto_de_convergencia, valor_alvo)
-        
-        if self.round <= 0:
-            return 2
-
-        number_of_trees_per_client = int(f(self.round)/self.clientes_esperados)
-        return number_of_trees_per_client if number_of_trees_per_client > 1 else 2
 
     def aggregate_strategy(self, best_forests: list[RandomForestRegressor], threshold=server_config["pearson_threshold"]):
         match self.aggregation_strategy:
@@ -158,7 +149,7 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         client_serialised_trees = []
         client_ID = None
 
-        logger.info(f"Recebendo as árvores dos clientes, Round: {self.round}, Árvores por Cliente: {self.get_number_of_trees_per_client()}")
+        logger.info(f"Recebendo as árvores dos clientes, Round: {self.round}")
 
         async for request in request_iterator:
             client_ID = request.client_ID
@@ -223,7 +214,7 @@ class FedT(fedT_pb2_grpc.FedTServicer):
     async def get_server_settings(self, request, context):
         logger.debug(f"Client ID: {request.client_ID}, solicitando as configurações.")
         return fedT_pb2.Server_Settings(
-            trees_by_client=self.get_number_of_trees_per_client(), 
+            trees_by_client=1, 
             current_round=self.round
         )
 
@@ -247,7 +238,6 @@ class FedT(fedT_pb2_grpc.FedTServicer):
                 logger.info(f"Tempo de Execução Médio: {utils.format_time(average_runtime(self.runtime_clients))}")
 
                 self.metrics = {
-                    "trees_by_client": self.get_number_of_trees_per_client(),
                     "aggregation_time": self.aggregation_time,
                     "avg_execution_time": average_runtime(self.runtime_clients)
                 }
@@ -292,7 +282,11 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         del self.model, self.global_trees, self.strategy
         gc.collect()
 
-        self.model = RandomForestRegressor(n_estimators=self.get_number_of_trees_per_client())
+        self.model = RandomForestRegressor(
+            n_estimators=self.clientes_esperados,
+            max_depth=3,
+            warm_start=True
+        )
         data_train, label_train = utils.load_dataset_for_server()
         utils.set_initial_params(self.model, data_train, label_train)
 
