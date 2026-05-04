@@ -12,6 +12,10 @@ The dataset is publicly available at the **UCI Machine Learning Repository**:
 This dataset is licensed under a **Creative Commons Attribution 4.0 International (CC BY 4.0)** license.  
 This allows for **sharing** and **adapting** the dataset for any purpose, even commercially, provided that appropriate credit is given to the original author.
 
+# Branchs
+- main: É a versão atual.
+- one-tree/0.1.1: É a versão utilizada no artigo FEXT-DP: An Approach for Differentially Private and Explainable Federated Learning.
+
 # Before Run
 
 ### Clonar o scikit-learn modificado
@@ -47,3 +51,18 @@ python -m grpc_tools.protoc \
     --grpc_python_out=. \
     --mypy_out=. \
     ./fedT.proto
+
+## To-Do
+- [ ] Ajustar os colaterais de modificar a função rpc aggregate_trees, Client_Tree é uma mensagem única ao invés de um stream agora.
+    - [x] Ajustar os imports dos arquivos gerados pelo proto.
+    - [ ] Ajustar o tratamento da mensagem do cliente no servidor.
+    - [ ] Ajustar o modo de envio da árvore para o servidor.
+
+# Esquema de Commits
+- feat: Pra adição de funcionalidade.
+- fix: Pra correção de bugs.
+- docs: Pra alterações de documentação.
+- style: Mudança de formatação (espaços, vígulas e etc...) coisas que não afetam o código.
+- refactor: Refatoração do código, sem adicionar novas funcionalidades ou corrigir bugs.
+- test: Adição ou ajuste de testes.
+- chore: Manutenção, atualização de dependências, configurações e etc...
