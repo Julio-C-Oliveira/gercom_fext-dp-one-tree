@@ -18,6 +18,16 @@ class PathConfig(BaseModel):
     dataset_path: Path
     graphics_path: Path
 
+class DifferentialPrivacyConfig(BaseModel):
+    global_max_target: float
+    global_min_target: float
+    tree_max_depth: int
+    epsilon: float
+    balancing_coefficient: float
+    tree_max_depths: list[int]
+    epsilons: list[float]
+    balancing_coefficients: list[float]
+
 class SequenceConfig(BaseModel):
     number_of_simulations: int
     aggregation_strategies: list[str]
@@ -44,8 +54,8 @@ class SettingsConfig(BaseModel):
     number_of_clients: int
     number_of_rounds: int
     seeds: list[int]
-    epsilons: list[float]
     aggregation_strategy: str
+    differential_privacy: DifferentialPrivacyConfig
     sequence: SequenceConfig
     client: ClientConfig
     server: ServerConfig

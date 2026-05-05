@@ -85,18 +85,14 @@ class FedT(fedT_pb2_grpc.FedTServicer):
 
         self.executor = ThreadPoolExecutor(max_workers=settings.number_of_jobs)
 
-        self.global_model = RandomForestRegressor(
+        self.global_model = RandomForestRegressor( # Dar um jeito de nem precisar treinar um modelo.
             n_estimators=self.clientes_esperados,
             max_depth=3,
             warm_start=True
         )
         data_train, label_train = utils.load_dataset_for_server()
-        self.global_model.fit(
-            data_train, label_train,
-            epsilon_global_budget=,
-            balancing_coefficient=,
-            global_max_target=,
-            global_min_target=,
+        self.global_model.fit( # Colocar na chamada da função.
+            data_train, label_train
         )
 
         self.global_trees = self.global_model.estimators_
@@ -307,10 +303,10 @@ async def run_server(input_aggregation_strategy=settings.aggregation_strategy):
 
     fedT_pb2_grpc.add_FedTServicer_to_server(servicer, server)
 
-    server.add_insecure_port(f"{server_config['IP']}:{server_config['port']}")
+    server.add_insecure_port(f"{settings.server.IP}:{settings.server.port}")
     
     await server.start()
-    logger.info(f"Servidor ativo - {server_config['IP']}:{server_config['port']}")
+    logger.info(f"Servidor ativo - {settings.server.IP}:{settings.server.port}")
 
     await shutdown_event.wait()
     logger.warning("Shutdown event recebido, desligando o servidor...")

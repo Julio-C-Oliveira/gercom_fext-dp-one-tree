@@ -7,3 +7,6 @@ fext_dp.egg-info/
 
 # Cache:
 __pycache__/
+
+# Logs
+*.log

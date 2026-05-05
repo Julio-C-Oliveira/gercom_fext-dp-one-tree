@@ -23,8 +23,17 @@ seeds = [
     2249696156, 2938670577, 
     3635933258, 4130305148
 ]
-epsilons = [-1.0, 10.0, 7.0, 5.0, 3.0, 1.0, 0.75, 0.5]
 aggregation_strategy = "random"
+
+[settings.differential_privacy]
+global_max_target = 1200
+global_min_target = 0
+tree_max_depth = 4
+epsilon = 3.0
+balancing_coefficient = 0.37
+tree_max_depths = []
+epsilons = [-1.0, 10.0, 7.0, 5.0, 3.0, 1.0, 0.75, 0.5]
+balancing_coefficients = []
 
 [settings.sequence]
 number_of_simulations = 30

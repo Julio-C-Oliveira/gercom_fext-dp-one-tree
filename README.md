@@ -32,6 +32,11 @@ Dentro do repositŕoio do Fedt existe o arquivo pyproject.toml, vá para o arqui
 ```
 Pegue o caminho absoluto para a sua pasta do scikit-learn-dp, e são 3 barras no inicio mesmo.
 
+Caso você modifique algo, as vezes o pip não reconhece as modificações e utiliza os dados em cache, para contornar isso use:
+```
+pip install --no-cache-dir ../
+```
+
 # How to Run
 
 
