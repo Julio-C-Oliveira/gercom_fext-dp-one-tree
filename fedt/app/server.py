@@ -10,16 +10,13 @@ import grpc.aio as grpc_aio
 
 from sklearn.ensemble import RandomForestRegressor
 
-from fedt.settings import (
-    server_config, number_of_jobs, number_of_clients, 
-    imported_aggregation_strategy, number_of_rounds,
-    results_folder
-)
-from fedt.fedforest import FedForest
-from fedt import utils
-from fedt.utils import create_specific_result_folder
-from fedt import fedT_pb2
-from fedt import fedT_pb2_grpc
+from fedt.app.settings import settings, paths
+
+from fedt.app.server_strategy import Strategy
+from fedt.app import utils
+from fedt.app.utils import create_specific_result_folder
+from fedt.service import fedT_pb2
+from fedt.service import fedT_pb2_grpc
 
 import warnings
 from scipy.stats import ConstantInputWarning
@@ -29,7 +26,7 @@ from concurrent.futures import ThreadPoolExecutor
 warnings.filterwarnings("ignore", category=ConstantInputWarning)
 
 # Configuração do log:
-log_level = logging.DEBUG if server_config["debug"] else logging.INFO
+log_level = logging.DEBUG if settings.server.debug else logging.INFO
 logger = utils.setup_logger(
     name="SERVER",
     log_file="fedt_server.log",
@@ -47,18 +44,19 @@ def average_runtime(runtime_clients):
     """Calcula o tempo médio de execução."""
     runtime_list = [(end - start) for (_, (start, end)) in runtime_clients]
     runtime_sum = sum(runtime_list)
-    runtime_average = runtime_sum / number_of_clients
+    runtime_average = runtime_sum / settings.number_of_clients
     return runtime_average
 
 
 class FedT(fedT_pb2_grpc.FedTServicer):
-    def __init__(self, input_aggregation_strategy=imported_aggregation_strategy) -> None:
+    def __init__(self, input_aggregation_strategy) -> None:
         super().__init__()
 
         self.aggregation_strategy = input_aggregation_strategy
 
         base_file_name = f"{self.aggregation_strategy}_server"
-        self.results_folder = create_specific_result_folder(results_folder, self.aggregation_strategy, "server")
+
+        self.results_folder = create_specific_result_folder(paths.results_folder, self.aggregation_strategy, "server")
         existing_files = [
             file for file in os.listdir(self.results_folder)
             if file.startswith(base_file_name) and file.endswith(".json")
@@ -76,7 +74,7 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         self.aggregation_realised = 0 # 0 waiting, 1 aggregating, 2 done.
 
         self.clientes_conectados = []
-        self.clientes_esperados = number_of_clients
+        self.clientes_esperados = settings.number_of_clients
         self.clientes_respondidos = 0
         self.trees_warehouse = []
         self.runtime_clients = []
@@ -85,34 +83,35 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         self._supervisor_started = False
         self.shutdown_event = None
 
-        self.executor = ThreadPoolExecutor(max_workers=number_of_jobs)
+        self.executor = ThreadPoolExecutor(max_workers=settings.number_of_jobs)
 
-        self.model = RandomForestRegressor(
+        self.global_model = RandomForestRegressor(
             n_estimators=self.clientes_esperados,
             max_depth=3,
             warm_start=True
         )
         data_train, label_train = utils.load_dataset_for_server()
-        utils.set_initial_params(self.model, data_train, label_train)
+        self.global_model.fit(
+            data_train, label_train,
+            epsilon_global_budget=,
+            balancing_coefficient=,
+            global_max_target=,
+            global_min_target=,
+        )
 
-        self.global_trees = self.model.estimators_
-        self.strategy = FedForest(self.model)
+        self.global_trees = self.global_model.estimators_
 
     def attach_shutdown_event(self, event):
         self.shutdown_event = event
 
-    def aggregate_strategy(self, best_forests: list[RandomForestRegressor], threshold=server_config["pearson_threshold"]):
+    def aggregate_strategy(self, best_forests: list[RandomForestRegressor]): # Tenho que adaptar isso à troca de pearson.
         match self.aggregation_strategy:
-            case 'random':
-                self.model.estimators_ = self.strategy.aggregate_fit_random_trees_strategy(best_forests)
-            case 'best_trees':
-                self.model.estimators_ = self.strategy.aggregate_fit_best_trees_strategy(best_forests)
-            case 'threshold':
-                self.model.estimators_ = self.strategy.aggregate_fit_best_trees_threshold_strategy(best_forests, threshold)
-            case 'best_forests':
-                self.model.estimators_ = self.strategy.aggregate_fit_best_forest_strategy(best_forests)
+            case "all_trees":
+                self.global_model.estimators_ = Strategy.all_trees(received_trees)
+            case "threshold_trees": 
+                self.global_model.estimators_ = Strategy.threshold_trees(self.validation_dataset, received_trees)
             case _:
-                self.model.estimators_ = self.strategy.aggregate_fit_random_trees_strategy(best_forests)
+                self.global_model.estimators_ = Strategy.all_trees(received_trees)
 
     async def _supervisor_task(self):
         while True:
@@ -145,29 +144,26 @@ class FedT(fedT_pb2_grpc.FedTServicer):
             self.aggregation_done.set()
 
 
-    async def aggregate_trees(self, request_iterator, context):
-        client_serialised_trees = []
+    async def aggregate_trees(self, request, context): # Retirar o request iterator.
         client_ID = None
 
         logger.info(f"Recebendo as árvores dos clientes, Round: {self.round}")
 
-        async for request in request_iterator:
-            client_ID = request.client_ID
-            client_serialised_trees.append(request.serialised_tree)
+        client_ID = request.client_ID
 
         loop = asyncio.get_running_loop()
-        client_trees = await loop.run_in_executor(
+        client_tree = await loop.run_in_executor(
             self.executor,
-            utils.deserialise_several_trees,
-            client_serialised_trees
+            utils.deserialise_tree,
+            request.serialised_tree
         )
         
         async with self.lock:
             if client_ID not in self.clientes_conectados:
                 self.clientes_conectados.append(client_ID)
-            self.trees_warehouse.append((client_ID, client_trees))
+            self.trees_warehouse.append((client_ID, client_tree))
 
-            logger.debug(f"O cliente {client_ID} enviou {len(client_trees)} árvores.")
+            logger.debug(f"O cliente {client_ID} enviou sua árvore.")
             logger.info(f"Clientes conectados {len(self.clientes_conectados)}/{self.clientes_esperados}")
 
             if not self._supervisor_started:
@@ -179,7 +175,7 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         serialised_global_trees = await loop.run_in_executor(
             self.executor, 
             utils.serialise_several_trees, 
-            self.model.estimators_
+            self.global_model.estimators_
         )
         number_of_trees = len(serialised_global_trees)
         number_of_sended_trees = 0
@@ -199,7 +195,7 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         logger.info(f"Client ID: {request.client_ID}, requisitando o modelo do servidor.")
         
         loop = asyncio.get_running_loop()
-        trees = utils.get_model_parameters(self.model)
+        trees = utils.get_model_parameters(self.global_model)
         serialised_trees = await loop.run_in_executor(
             self.executor, 
             utils.serialise_several_trees, 
@@ -227,9 +223,9 @@ class FedT(fedT_pb2_grpc.FedTServicer):
                 end_time
             )
             self.clientes_respondidos += 1
-            logger.info(f"O cliente {request.client_ID} finalizou round. Clientes respondidos: {self.clientes_respondidos}/{number_of_clients}")
+            logger.info(f"O cliente {request.client_ID} finalizou round. Clientes respondidos: {self.clientes_respondidos}/{self.clientes_esperados}")
 
-            if self.clientes_respondidos == number_of_clients:
+            if self.clientes_respondidos == self.clientes_esperados:
                 logger.info("Todos os clientes finalizaram.")
 
                 for i in self.runtime_clients:
@@ -259,7 +255,7 @@ class FedT(fedT_pb2_grpc.FedTServicer):
                 logger.warning(f"Round {self.round} finalizado")
                 self.round += 1
 
-                if self.round >= number_of_rounds:
+                if self.round >= settings.number_of_rounds:
                     logger.warning(f"Encerrando treinamento em 5 segundos...")
                     self.shutdown_event.set()
                     return fedT_pb2.OK(ok=1)
@@ -279,19 +275,18 @@ class FedT(fedT_pb2_grpc.FedTServicer):
     def _reset_server_sync(self):
         logger.warning("Resetando estado do servidor...")
         
-        del self.model, self.global_trees, self.strategy
+        del self.global_model, self.global_trees
         gc.collect()
 
-        self.model = RandomForestRegressor(
+        self.global_model = RandomForestRegressor(
             n_estimators=self.clientes_esperados,
             max_depth=3,
             warm_start=True
         )
         data_train, label_train = utils.load_dataset_for_server()
-        utils.set_initial_params(self.model, data_train, label_train)
+        self.global_model.fit(data_train, label_train)
 
-        self.global_trees = self.model.estimators_
-        self.strategy = FedForest(self.model)
+        self.global_trees = self.global_model.estimators_
 
         self.clientes_conectados = []
         self.clientes_respondidos = 0
@@ -301,7 +296,7 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         self.aggregation_time = 0.0
 
 
-async def run_server(input_aggregation_strategy=None):
+async def run_server(input_aggregation_strategy=settings.aggregation_strategy):
     logger.info("Servidor inicializando...")
 
     server = grpc_aio.server()
