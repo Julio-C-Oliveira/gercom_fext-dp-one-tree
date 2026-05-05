@@ -66,3 +66,8 @@ class Config(BaseModel):
 with open(config_path, "rb") as file:
     data = tomllib.load(file)
     config = Config(**data)
+
+    paths = config.paths
+    settings = config.settings
+    dataset = config.dataset
+    scripts = config.scripts
