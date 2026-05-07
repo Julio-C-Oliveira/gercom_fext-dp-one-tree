@@ -23,6 +23,8 @@ from scipy.stats import ConstantInputWarning
 
 from concurrent.futures import ThreadPoolExecutor
 
+import argparse
+
 warnings.filterwarnings("ignore", category=ConstantInputWarning)
 
 # Configuração do log:
@@ -49,10 +51,12 @@ def average_runtime(runtime_clients):
 
 
 class FedT(fedT_pb2_grpc.FedTServicer):
-    def __init__(self, input_aggregation_strategy) -> None:
+    def __init__(self, aggregation_strategy, seed, epsilon) -> None:
         super().__init__()
 
-        self.aggregation_strategy = input_aggregation_strategy
+        self.aggregation_strategy = aggregation_strategy
+        self.seed = seed
+        self.epsilon = epsilon
 
         base_file_name = f"{self.aggregation_strategy}_server"
 
@@ -206,8 +210,9 @@ class FedT(fedT_pb2_grpc.FedTServicer):
     async def get_server_settings(self, request, context):
         logger.debug(f"Client ID: {request.client_ID}, solicitando as configurações.")
         return fedT_pb2.Server_Settings(
-            trees_by_client=1, 
-            current_round=self.round
+            current_round=self.round,
+            seed=self.seed,
+            epsilon=self.epsilon
         )
 
     async def end_of_transmission(self, request, context):
@@ -292,11 +297,15 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         self.aggregation_time = 0.0
 
 
-async def run_server(input_aggregation_strategy=settings.aggregation_strategy):
+async def run_server(aggregation_strategy, seed, epsilon):
     logger.info("Servidor inicializando...")
 
     server = grpc_aio.server()
-    servicer = FedT(input_aggregation_strategy)
+    servicer = FedT(
+        aggregation_strategy, 
+        seed, 
+        epsilon
+    )
 
     shutdown_event = asyncio.Event()
     servicer.attach_shutdown_event(shutdown_event)
@@ -319,4 +328,39 @@ async def run_server(input_aggregation_strategy=settings.aggregation_strategy):
 
 
 if __name__ == "__main__":
-    asyncio.run(run_server())
+    parse = argparse.ArgumentParser(description="Federated Learning for Decision Trees with Differential Privacy")
+    parse.add_argument(
+        "-st", "--strategy",
+        required=False,
+        type=str,
+        default=settings.aggregation_strategy,
+        choices=["all_trees", "threshold_trees"],
+        help="A estrátegia à ser utilizada."
+    )
+    parse.add_argument(
+        "-s", "--seed",
+        required=False,
+        type=int,
+        default=None,
+        help="Random State, para produzir reprodutibilidade."
+    )
+    parse.add_argument(
+        "-e", "--epsilon",
+        required=False,
+        type=float,
+        default=-1.0,
+        help="Nível de privacidade, quanto menor o epsilon, maior o nível de privacidade aplicado."
+    )
+    args = parse.parse_args()
+
+    aggregation_strategy = args.strategy
+    seed = args.seed
+    epsilon = args.epsilon
+
+    asyncio.run(
+        run_server(
+            aggregation_strategy=aggregation_strategy,
+            seed=seed,
+            epsilon=epsilon
+        )
+    )

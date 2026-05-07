@@ -36,17 +36,20 @@ Global___Request_Server: _TypeAlias = Request_Server  # noqa: Y015
 class Server_Settings(_message.Message):
     DESCRIPTOR: _descriptor.Descriptor
 
-    TREES_BY_CLIENT_FIELD_NUMBER: _builtins.int
     CURRENT_ROUND_FIELD_NUMBER: _builtins.int
-    trees_by_client: _builtins.int
+    SEED_FIELD_NUMBER: _builtins.int
+    EPSILON_FIELD_NUMBER: _builtins.int
     current_round: _builtins.int
+    seed: _builtins.int
+    epsilon: _builtins.float
     def __init__(
         self,
         *,
-        trees_by_client: _builtins.int = ...,
         current_round: _builtins.int = ...,
+        seed: _builtins.int = ...,
+        epsilon: _builtins.float = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["current_round", b"current_round", "trees_by_client", b"trees_by_client"]  # noqa: Y015
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["current_round", b"current_round", "epsilon", b"epsilon", "seed", b"seed"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
 Global___Server_Settings: _TypeAlias = Server_Settings  # noqa: Y015
@@ -91,11 +94,11 @@ class OK(_message.Message):
     DESCRIPTOR: _descriptor.Descriptor
 
     OK_FIELD_NUMBER: _builtins.int
-    ok: _builtins.int
+    ok: _builtins.bool
     def __init__(
         self,
         *,
-        ok: _builtins.int = ...,
+        ok: _builtins.bool = ...,
     ) -> None: ...
     _ClearFieldArgType: _TypeAlias = _typing.Literal["ok", b"ok"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...

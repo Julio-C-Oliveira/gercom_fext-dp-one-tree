@@ -26,15 +26,19 @@ https://github.com/Julio-C-Oliveira/scikit-learn-dp.git
 Atualmente está na versão 1.9.dev0+dp
 
 ### Adicionar o path pro scikit-learn modificado no pyproject
-Dentro do repositŕoio do Fedt existe o arquivo pyproject.toml, vá para o arquivo, na sessão project, dentro da váriavel dependencies altere essa linha:
+Dentro do repositório do Fedt existe o arquivo pyproject.toml, vá para o arquivo, na sessão project, dentro da váriavel dependencies altere essa linha:
 ```
 "scikit-learn @ file:///home/julio/documents/github/scikit-learn-dp",
 ```
 Pegue o caminho absoluto para a sua pasta do scikit-learn-dp, e são 3 barras no inicio mesmo.
 
+Para instalar todas as dependências do projeto use o seguinte comando na raiz do projeto:
+```
+pip install .
+```
 Caso você modifique algo, as vezes o pip não reconhece as modificações e utiliza os dados em cache, para contornar isso use:
 ```
-pip install --no-cache-dir ../
+pip install --no-cache-dir .
 ```
 
 # How to Run

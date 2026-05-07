@@ -10,16 +10,17 @@ service FedT {
 }
 
 message Request_Server {
-    int32 client_ID = 1;
+    uint32 client_ID = 1;
 }
 
 message Server_Settings {
-    int32 trees_by_client = 1;
-    int32 current_round = 2;
+    uint32 current_round = 1;
+    uint32 seed = 2;
+    float epsilon = 3;
 }
 
 message Client_Tree {
-    int32 client_ID = 1;
+    uint32 client_ID = 1;
     bytes serialised_tree = 2;
 }
 
@@ -28,5 +29,5 @@ message Forest_Server {
 }
 
 message OK {
-    int32 ok = 1;
+    bool ok = 1;
 }
