@@ -19,6 +19,7 @@ class PathConfig(BaseModel):
     graphics_path: Path
 
 class DifferentialPrivacyConfig(BaseModel):
+    splitter: str
     global_max_target: float
     global_min_target: float
     tree_max_depth: int

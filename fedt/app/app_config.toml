@@ -26,6 +26,7 @@ seeds = [
 aggregation_strategy = "random"
 
 [settings.differential_privacy]
+splitter = "best"
 global_max_target = 1200
 global_min_target = 0
 tree_max_depth = 4
