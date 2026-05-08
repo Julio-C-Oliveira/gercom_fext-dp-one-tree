@@ -87,18 +87,27 @@ async def run():
 
             request_settings = fedT_pb2.Request_Server(client_ID=ID)
             server_reply_settings = await stub.get_server_settings(request_settings)
-            trees_by_client = server_reply_settings.trees_by_client
+            
+            current_round = server_reply_settings.current_round
+            seed = server_reply_settings.seed
+            epsilon = server_reply_settings.epsilon
+
             server_round = getattr(server_reply_settings, "current_round", None)
 
-            logger.debug(f"Trees by client: {trees_by_client}.")
+            logger.debug(f"Round Atual: {current_round}.")
+            logger.debug(f"Seed: {seed}.")
+            logger.debug(f"Epsilon: {epsilon}.")
 
             wait_start = time.time()
             while server_round is not None and server_round < round_idx:
                 logger.info(f"Servidor no round {server_round}, esperando atingir round {round_idx}...")
                 await asyncio.sleep(5)
                 server_reply_settings = await stub.get_server_settings(request_settings)
-                server_round = server_reply_settings.current_round
-                trees_by_client = server_reply_settings.trees_by_client
+
+                current_round = server_reply_settings.current_round
+                seed = server_reply_settings.seed
+                epsilon = server_reply_settings.epsilon
+
                 if time.time() - wait_start > settings.client.timeout:
                     raise RuntimeError(f"[Client {ID}] Timeout esperando servidor avançar do round {server_round} para {round_idx}")
 

@@ -17,6 +17,7 @@ from fedt.app import utils
 from fedt.app.utils import create_specific_result_folder
 from fedt.service import fedT_pb2
 from fedt.service import fedT_pb2_grpc
+from google.protobuf import wrappers_pb2
 
 import warnings
 from scipy.stats import ConstantInputWarning
@@ -211,7 +212,7 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         logger.debug(f"Client ID: {request.client_ID}, solicitando as configurações.")
         return fedT_pb2.Server_Settings(
             current_round=self.round,
-            seed=self.seed,
+            seed=google.protobuf.wrappers_pb2.Int32Value(value=self.seed),
             epsilon=self.epsilon
         )
 

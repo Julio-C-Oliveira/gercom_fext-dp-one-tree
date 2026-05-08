@@ -5,6 +5,7 @@ isort:skip_file
 
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
+from google.protobuf import wrappers_pb2 as _wrappers_pb2
 import builtins as _builtins
 import sys
 import typing as _typing
@@ -40,15 +41,18 @@ class Server_Settings(_message.Message):
     SEED_FIELD_NUMBER: _builtins.int
     EPSILON_FIELD_NUMBER: _builtins.int
     current_round: _builtins.int
-    seed: _builtins.int
     epsilon: _builtins.float
+    @_builtins.property
+    def seed(self) -> _wrappers_pb2.Int32Value: ...
     def __init__(
         self,
         *,
         current_round: _builtins.int = ...,
-        seed: _builtins.int = ...,
+        seed: _wrappers_pb2.Int32Value | None = ...,
         epsilon: _builtins.float = ...,
     ) -> None: ...
+    _HasFieldArgType: _TypeAlias = _typing.Literal["seed", b"seed"]  # noqa: Y015
+    def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
     _ClearFieldArgType: _TypeAlias = _typing.Literal["current_round", b"current_round", "epsilon", b"epsilon", "seed", b"seed"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
