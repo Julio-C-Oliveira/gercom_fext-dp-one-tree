@@ -131,12 +131,8 @@ async def run():
                 utils.serialise_tree,
                 client.local_model
             )
-            client_serialise_tree_size = utils.get_size_of_many_serialised_models(serialise_tree)
+            client_serialise_tree_size = utils.get_serialised_size_bytes(serialise_tree)
             logger.debug(f"Local Model in MB: {client_serialise_tree_size/(1024**2)}")
-
-            msg = fedT_pb2.Forest_CLient()
-            msg.client_ID = client_ID
-            msg.serialised_tree = tree
 
             aggregate_trees_request = fedT_pb2.Client_Tree()
             aggregate_trees_request.client_ID = ID
@@ -171,7 +167,7 @@ async def run():
                 server_model
             )
             evaluate_time = time.time() - evaluate_start_time
-            logger.info(f"\nModelo Final:\nAbsolute Error: {absolute_error:.3f}\nSquared Error: {squared_error:.3f}\nPearson: {pearson_corr:.3f}")
+            logger.info(f"\nModelo Inicial:\nMean Squared Error: {final_evaluate_metrics["mse"]:.3f}\nPearson: {final_evaluate_metrics["pearson"]:.3f}")
 
             round_end_time = time.time()
             round_time = round_end_time - round_start_time
@@ -191,7 +187,7 @@ async def run():
                 "trees_by_client": settings.number_of_clients,
                 "first_server_serialise_trees_size": first_server_serialise_trees_size,
                 "fit_time": fit_time,
-                "client_serialise_trees_size": client_serialise_trees_size,
+                "client_serialise_trees_size": client_serialise_tree_size,
                 "final_server_serialise_trees_size": final_server_serialise_trees_size,
                 "squared_error": final_evaluate_metrics["mse"],
                 "pearson_corr": final_evaluate_metrics["pearson"],
@@ -218,14 +214,14 @@ async def run():
 if __name__ == "__main__":
     parse = argparse.ArgumentParser(description="Federated Learning for Decision Trees with Differential Privacy")
     parse.add_argument(
-        "--client-id",
+        "-c", "--client-id",
         required=False,
         type=int,
         default=0,
         help="Client ID"
     )
     parse.add_argument(
-        "--strategy",
+        "-s", "--strategy",
         required=False,
         type=str,
         default=settings.aggregation_strategy,

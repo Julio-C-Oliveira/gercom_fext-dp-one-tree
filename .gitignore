@@ -8,5 +8,17 @@ fext_dp.egg-info/
 # Cache:
 __pycache__/
 
-# Logs
+# Resultados
+results/*/
+final_results/*/
+*.pdf
+resultados.csv
+external_results/
+
+# Arquivos de log
 *.log
+monitor_log.json
+logs/*/
+
+# Arquivos de rede
+*.pcap

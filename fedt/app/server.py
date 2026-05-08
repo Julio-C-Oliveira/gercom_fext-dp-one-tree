@@ -105,7 +105,7 @@ class FedT(fedT_pb2_grpc.FedTServicer):
     def attach_shutdown_event(self, event):
         self.shutdown_event = event
 
-    def aggregate_strategy(self, best_forests: list[RandomForestRegressor]): # Tenho que adaptar isso à troca de pearson.
+    def aggregate_strategy(self, received_trees): # Tenho que adaptar isso à troca de pearson.
         match self.aggregation_strategy:
             case "all_trees":
                 self.global_model.estimators_ = Strategy.all_trees(received_trees)
@@ -184,7 +184,7 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         server_reply = fedT_pb2.Forest_Server()
         for tree in serialised_global_trees:
             number_of_sended_trees += 1
-            if number_of_sended_trees % server_config["print_every_trees_sent"] == 0:
+            if number_of_sended_trees % settings.server.print_every_trees_sent == 0:
                 logger.info(f"Client ID: {client_ID}. Àrvore {number_of_sended_trees} de {number_of_trees} enviada.")
             server_reply.serialised_tree = tree
             yield server_reply
