@@ -75,16 +75,13 @@ python -m grpc_tools.protoc \
         - [x] Modo de envio da árvore para o servidor. De iterator, para request único, no aggregate trees.
         - [x] Alterar HouseClient, para Client.
         - [x] Ajustar o get_server_settings no cliente.
-        - [ ] Substituir as florestas por árvores.
-        - [ ] Remover o self.trees
-        - [ ] O evaluate foi substituido por choose_model, ajustar o cliente.
-        - [ ] O return do choose também é diferente do evaluate.
-
+        - [x] Substituir as florestas por árvores.
+        - [x] Remover o self.trees
+        - [x] O evaluate foi substituido por choose_model, ajustar o cliente.
+        - [x] O return do choose também é diferente do evaluate.
+    - [ ] Escrever o simulation.toml
 - [ ] Adicionar reprodutibilidade na geração dos datasets para os clientes. 
 - [ ] Analisar a possibilidade de remover a inicialização de um modelo de floresta do lado do servidor.  
-
-- [ ] Adicionar os parâmetros relacionados à DP
-    - [x] Ajustar a inicialização do modelo.
 
 - [ ] Remover as funções mortas
     - [x] Retirar o gerar_funcao_logaritmica do utils, se o server não vai utilizar mais ela se tornou inútil.
