@@ -81,14 +81,14 @@ Global___Client_Tree: _TypeAlias = Client_Tree  # noqa: Y015
 class Forest_Server(_message.Message):
     DESCRIPTOR: _descriptor.Descriptor
 
-    SERIALISED_TREES_FIELD_NUMBER: _builtins.int
-    serialised_trees: _builtins.bytes
+    SERIALISED_TREE_FIELD_NUMBER: _builtins.int
+    serialised_tree: _builtins.bytes
     def __init__(
         self,
         *,
-        serialised_trees: _builtins.bytes = ...,
+        serialised_tree: _builtins.bytes = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["serialised_trees", b"serialised_trees"]  # noqa: Y015
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["serialised_tree", b"serialised_tree"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
 Global___Forest_Server: _TypeAlias = Forest_Server  # noqa: Y015

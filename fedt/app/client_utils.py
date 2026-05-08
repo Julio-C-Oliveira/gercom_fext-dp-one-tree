@@ -16,7 +16,7 @@ warnings.filterwarnings("ignore", category=ConstantInputWarning)
 
 class Client():
 
-    def __init__(self, trees_by_client: int, dataset, ID, seed, epsilon) -> None:
+    def __init__(self, dataset, ID, seed, epsilon) -> None:
         self.X_train, self.y_train, self.X_test, self.y_test = dataset
 
         self.local_model = DecisionTreeRegressor(
@@ -39,11 +39,11 @@ class Client():
         local_model_predictions = self.local_model.predict(self.X_test)
         global_model_predictions = global_model.predict(self.X_test)
 
-        metrics = evaluate(local_model_predictions)
-        global_metrics = evaluate(global_model_predictions)
+        metrics = self.evaluate(local_model_predictions)
+        global_metrics = self.evaluate(global_model_predictions)
 
         if global_metrics[settings.client.evaluate_type] < metrics[settings.client.evaluate_type]: 
-            self.model = global_model
+            self.local_model = global_model
             metrics = global_metrics
 
         return metrics

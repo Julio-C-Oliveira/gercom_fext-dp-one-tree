@@ -10,14 +10,14 @@ import grpc.aio as grpc_aio
 from fedt.app.settings import settings
 from fedt.app.settings import paths
 
-from fedt import utils
-from fedt.utils import create_specific_result_folder
-from fedt.utils import format_time
-from fedt import fedT_pb2
-from fedt import fedT_pb2_grpc
+from fedt.app import utils
+from fedt.app.utils import create_specific_result_folder
+from fedt.app.utils import format_time
+from fedt.service import fedT_pb2
+from fedt.service import fedT_pb2_grpc
 
 from sklearn.ensemble import RandomForestRegressor
-from client_utils import Client
+from fedt.app.client_utils import Client
 
 import argparse
 import logging
@@ -27,31 +27,6 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 executor = ThreadPoolExecutor(max_workers=None)
-
-parse = argparse.ArgumentParser(description="FedT")
-parse.add_argument(
-    "--client-id",
-    required=True,
-    type=int,
-    help="Client ID"
-)
-parse.add_argument(
-    "--strategy",
-    type=str,
-    default=settings.aggregation_strategy,
-    help="Nome da estratégia (opcional)"
-)
-args = parse.parse_args()
-ID = args.client_id
-aggregation_strategy = args.strategy
-
-log_level = logging.DEBUG if settings.client.debug else logging.INFO
-logger = utils.setup_logger(
-    name=f"Client {ID}",
-    log_file=f"fedt_client_{ID}.log",
-    level=log_level
-)
-
 
 def send_stream_trees(serialise_trees:bytes, client_ID:int):
     async def _gen():
@@ -89,7 +64,10 @@ async def run():
             server_reply_settings = await stub.get_server_settings(request_settings)
             
             current_round = server_reply_settings.current_round
-            seed = server_reply_settings.seed
+            if server_reply_settings.HasField('seed'):
+                seed = server_reply_settings.seed.value
+            else:
+                seed = None
             epsilon = server_reply_settings.epsilon
 
             server_round = getattr(server_reply_settings, "current_round", None)
@@ -129,7 +107,7 @@ async def run():
             gc.collect()
 
             server_model = RandomForestRegressor(
-                n_estimators=trees_by_client,
+                n_estimators=settings.number_of_clients,
                 max_depth=3,
                 warm_start=True
             )
@@ -138,7 +116,6 @@ async def run():
 
             fit_start_time = time.time()
             client = Client(
-                trees_by_client, 
                 dataset, 
                 ID, 
                 seed, 
@@ -146,8 +123,8 @@ async def run():
             )
             fit_time = time.time() - fit_start_time
             
-            (absolute_error, squared_error, (pearson_corr, p_value), best_trees) = client.evaluate(server_model)
-            logger.info(f"\nModelo Inicial:\nAbsolute Error: {absolute_error:.3f}\nSquared Error: {squared_error:.3f}\nPearson: {pearson_corr:.3f}")
+            initial_evaluate_metrics = client.choose_model(server_model)
+            logger.info(f"\nModelo Inicial:\nMean Squared Error: {initial_evaluate_metrics["mse"]:.3f}\nPearson: {initial_evaluate_metrics["pearson"]:.3f}")
 
             serialise_tree = await loop.run_in_executor(
                 executor,
@@ -169,7 +146,6 @@ async def run():
             async for reply in stub.aggregate_trees(aggregate_trees_request):
                 server_trees_serialised.append(reply.serialised_tree)
 
-
             del serialise_tree
             gc.collect()
 
@@ -188,11 +164,10 @@ async def run():
             final_server_serialise_trees_size = utils.get_size_of_many_serialised_models(server_trees_serialised)
             logger.debug(f"Final Server Model in MB: {final_server_serialise_trees_size/(1024**2)}")
 
-
             evaluate_start_time = time.time()
-            (absolute_error, squared_error, (pearson_corr, p_value), best_trees) = await loop.run_in_executor(
+            final_evaluate_metrics = await loop.run_in_executor(
                 executor,
-                client.evaluate,
+                client.choose_model,
                 server_model
             )
             evaluate_time = time.time() - evaluate_start_time
@@ -213,13 +188,13 @@ async def run():
             del server_model, client, server_trees_serialised, server_trees_deserialised
 
             metrics = {
-                "trees_by_client": trees_by_client,
+                "trees_by_client": settings.number_of_clients,
                 "first_server_serialise_trees_size": first_server_serialise_trees_size,
                 "fit_time": fit_time,
                 "client_serialise_trees_size": client_serialise_trees_size,
                 "final_server_serialise_trees_size": final_server_serialise_trees_size,
-                "squared_error": squared_error,
-                "pearson_corr": pearson_corr,
+                "squared_error": final_evaluate_metrics["mse"],
+                "pearson_corr": final_evaluate_metrics["pearson"],
                 "round_time": round_time,
                 "round_start_time": round_start_time,
                 "round_end_time": round_end_time,
@@ -241,5 +216,31 @@ async def run():
 
 
 if __name__ == "__main__":
+    parse = argparse.ArgumentParser(description="Federated Learning for Decision Trees with Differential Privacy")
+    parse.add_argument(
+        "--client-id",
+        required=False,
+        type=int,
+        default=0,
+        help="Client ID"
+    )
+    parse.add_argument(
+        "--strategy",
+        required=False,
+        type=str,
+        default=settings.aggregation_strategy,
+        help="Nome da estratégia"
+    )
+    args = parse.parse_args()
+    ID = args.client_id
+    aggregation_strategy = args.strategy
+
+    log_level = logging.DEBUG if settings.client.debug else logging.INFO
+    logger = utils.setup_logger(
+        name=f"Client {ID}",
+        log_file=f"fedt_client_{ID}.log",
+        level=log_level
+    )
+
     asyncio.run(run())
     executor.shutdown(wait=True)

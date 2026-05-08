@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from google.protobuf import wrappers_pb2 as google_dot_protobuf_dot_wrappers__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nfedT.proto\x12\x04\x66\x65\x64T\x1a\x1egoogle/protobuf/wrappers.proto\"#\n\x0eRequest_Server\x12\x11\n\tclient_ID\x18\x01 \x01(\r\"d\n\x0fServer_Settings\x12\x15\n\rcurrent_round\x18\x01 \x01(\r\x12)\n\x04seed\x18\x02 \x01(\x0b\x32\x1b.google.protobuf.Int32Value\x12\x0f\n\x07\x65psilon\x18\x03 \x01(\x02\"9\n\x0b\x43lient_Tree\x12\x11\n\tclient_ID\x18\x01 \x01(\r\x12\x17\n\x0fserialised_tree\x18\x02 \x01(\x0c\")\n\rForest_Server\x12\x18\n\x10serialised_trees\x18\x01 \x01(\x0c\"\x10\n\x02OK\x12\n\n\x02ok\x18\x01 \x01(\x08\x32\xff\x01\n\x04\x46\x65\x64T\x12;\n\x0f\x61ggregate_trees\x12\x11.fedT.Client_Tree\x1a\x13.fedT.Forest_Server0\x01\x12?\n\x10get_server_model\x12\x14.fedT.Request_Server\x1a\x13.fedT.Forest_Server0\x01\x12\x42\n\x13get_server_settings\x12\x14.fedT.Request_Server\x1a\x15.fedT.Server_Settings\x12\x35\n\x13\x65nd_of_transmission\x12\x14.fedT.Request_Server\x1a\x08.fedT.OKb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nfedT.proto\x12\x04\x66\x65\x64T\x1a\x1egoogle/protobuf/wrappers.proto\"#\n\x0eRequest_Server\x12\x11\n\tclient_ID\x18\x01 \x01(\r\"d\n\x0fServer_Settings\x12\x15\n\rcurrent_round\x18\x01 \x01(\r\x12)\n\x04seed\x18\x02 \x01(\x0b\x32\x1b.google.protobuf.Int32Value\x12\x0f\n\x07\x65psilon\x18\x03 \x01(\x02\"9\n\x0b\x43lient_Tree\x12\x11\n\tclient_ID\x18\x01 \x01(\r\x12\x17\n\x0fserialised_tree\x18\x02 \x01(\x0c\"(\n\rForest_Server\x12\x17\n\x0fserialised_tree\x18\x01 \x01(\x0c\"\x10\n\x02OK\x12\n\n\x02ok\x18\x01 \x01(\x08\x32\xff\x01\n\x04\x46\x65\x64T\x12;\n\x0f\x61ggregate_trees\x12\x11.fedT.Client_Tree\x1a\x13.fedT.Forest_Server0\x01\x12?\n\x10get_server_model\x12\x14.fedT.Request_Server\x1a\x13.fedT.Forest_Server0\x01\x12\x42\n\x13get_server_settings\x12\x14.fedT.Request_Server\x1a\x15.fedT.Server_Settings\x12\x35\n\x13\x65nd_of_transmission\x12\x14.fedT.Request_Server\x1a\x08.fedT.OKb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -39,9 +39,9 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_CLIENT_TREE']._serialized_start=191
   _globals['_CLIENT_TREE']._serialized_end=248
   _globals['_FOREST_SERVER']._serialized_start=250
-  _globals['_FOREST_SERVER']._serialized_end=291
-  _globals['_OK']._serialized_start=293
-  _globals['_OK']._serialized_end=309
-  _globals['_FEDT']._serialized_start=312
-  _globals['_FEDT']._serialized_end=567
+  _globals['_FOREST_SERVER']._serialized_end=290
+  _globals['_OK']._serialized_start=292
+  _globals['_OK']._serialized_end=308
+  _globals['_FEDT']._serialized_start=311
+  _globals['_FEDT']._serialized_end=566
 # @@protoc_insertion_point(module_scope)

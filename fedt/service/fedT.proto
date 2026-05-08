@@ -27,7 +27,7 @@ message Client_Tree {
 }
 
 message Forest_Server {
-    bytes serialised_trees = 1;
+    bytes serialised_tree = 1;
 }
 
 message OK {
