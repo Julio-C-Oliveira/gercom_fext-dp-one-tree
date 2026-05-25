@@ -25,18 +25,11 @@ class DifferentialPrivacyConfig(BaseModel):
     tree_max_depth: int
     epsilon: float
     balancing_coefficient: float
-    tree_max_depths: list[int]
-    epsilons: list[float]
-    balancing_coefficients: list[float]
-
-class SequenceConfig(BaseModel):
-    number_of_simulations: int
-    aggregation_strategies: list[str]
 
 class ClientConfig(BaseModel):
     timeout: int
     debug: bool
-    tree_depth: list[int]
+    tree_depth: int
     evaluate_type: str
 
 class ServerConfig(BaseModel):
@@ -54,10 +47,9 @@ class SettingsConfig(BaseModel):
     number_of_jobs: int
     number_of_clients: int
     number_of_rounds: int
-    seeds: list[int]
+    seed: int
     aggregation_strategy: str
     differential_privacy: DifferentialPrivacyConfig
-    sequence: SequenceConfig
     client: ClientConfig
     server: ServerConfig
 
