@@ -14,7 +14,6 @@ class PathConfig(BaseModel):
     final_results_folder: Path
     logs_folder: Path
     scripts_path: Path
-    client_script_path: Path
     dataset_path: Path
     graphics_path: Path
 
