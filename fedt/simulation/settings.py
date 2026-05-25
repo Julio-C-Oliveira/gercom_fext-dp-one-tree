@@ -15,6 +15,8 @@ class SimulationConfig(BaseModel):
     balancing_coefficients: list[float]
     number_of_simulations: int
     aggregation_strategies: list[str]
+    number_of_clients_for_test: int
+    start_ID_for_clients: int
 
 class Config(BaseModel):
     simulation: SimulationConfig
