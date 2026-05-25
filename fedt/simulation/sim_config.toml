@@ -1,0 +1,17 @@
+[simulation]
+seeds = [
+    1, 2, 5, 10, 17, 20, 
+    28, 37, 42, 87, 169, 
+    428, 456, 632, 744, 
+    766, 769, 780, 987, 
+    8502, 8934, 13001, 
+    191524, 191738096, 
+    195864652, 308651098, 
+    2249696156, 2938670577, 
+    3635933258, 4130305148
+]
+tree_max_depths = []
+epsilons = [-1.0, 10.0, 7.0, 5.0, 3.0, 1.0, 0.75, 0.5]
+balancing_coefficients = []
+number_of_simulations = 30
+aggregation_strategies = ["all_trees", "threshold_trees"]
