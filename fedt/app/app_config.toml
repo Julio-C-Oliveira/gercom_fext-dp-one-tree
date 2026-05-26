@@ -3,7 +3,6 @@ base_path = '.'
 results_folder = 'results'
 final_results_folder = 'final_results'
 logs_folder = 'logs'
-scripts_path = 'scripts'
 dataset_path = 'energydata_complete.csv'
 graphics_path = 'graphics'
 

@@ -13,7 +13,6 @@ class PathConfig(BaseModel):
     results_folder: Path
     final_results_folder: Path
     logs_folder: Path
-    scripts_path: Path
     dataset_path: Path
     graphics_path: Path
 
