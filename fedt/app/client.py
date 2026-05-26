@@ -39,18 +39,6 @@ def send_stream_trees(serialise_trees:bytes, client_ID:int):
     return _gen()
 
 async def run():
-    base_file_name = f"{aggregation_strategy}_client-id-{ID}"
-    new_results_folder = create_specific_result_folder(paths.results_folder, aggregation_strategy, f"client-id-{ID}") 
-    existing_files = [
-        file for file in os.listdir(new_results_folder)
-        if file.startswith(base_file_name) and file.endswith(".json")
-    ]
-    next_file_index = len(existing_files) + 1
-    result_file_name = f"{base_file_name}_{next_file_index}.json"
-    result_file_path = (new_results_folder / result_file_name).resolve()
-
-    logger.warning(f"Result path: {result_file_path}")
-
     async with grpc_aio.insecure_channel(f"{settings.server.IP}:{settings.server.port}") as channel:
         stub = fedT_pb2_grpc.FedTStub(channel)
 
@@ -197,6 +185,19 @@ async def run():
                 "evaluate_time": evaluate_time,
                 "inference_time": inference_time
             }
+
+            base_file_name = f"{aggregation_strategy}_client-id-{ID}_{epsilon}"
+            new_results_folder = create_specific_result_folder(paths.results_folder, aggregation_strategy, f"client-id-{ID}") 
+            existing_files = [
+                file for file in os.listdir(new_results_folder)
+                if file.startswith(base_file_name) and file.endswith(".json")
+            ]
+            next_file_index = len(existing_files) + 1
+            result_file_name = f"{base_file_name}_{next_file_index}.json"
+            result_file_path = (new_results_folder / result_file_name).resolve()
+
+            logger.warning(f"Result path: {result_file_path}")
+
             if result_file_path.exists():
                 with open(result_file_path, "r", encoding="utf-8") as file:
                     data = json.load(file)
