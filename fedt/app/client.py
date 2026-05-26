@@ -221,11 +221,12 @@ if __name__ == "__main__":
         help="Client ID"
     )
     parse.add_argument(
-        "-s", "--strategy",
+        "-st", "--strategy",
         required=False,
         type=str,
         default=settings.aggregation_strategy,
-        help="Nome da estratégia"
+        choices=["all_trees", "threshold_trees"],
+        help="A estrátegia à ser utilizada."
     )
     args = parse.parse_args()
     ID = args.client_id
