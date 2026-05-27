@@ -111,7 +111,10 @@ async def run():
             )
             fit_time = time.time() - fit_start_time
             
-            initial_evaluate_metrics = client.choose_model(server_model)
+            initial_evaluate_metrics = client.choose_model(
+                global_model=server_model,
+                update_local_model=False
+            )
             logger.info(f"\nModelo Inicial:\nMean Squared Error: {initial_evaluate_metrics["mse"]:.3f}\nPearson: {initial_evaluate_metrics["pearson"]:.3f}")
 
             serialise_tree = await loop.run_in_executor(

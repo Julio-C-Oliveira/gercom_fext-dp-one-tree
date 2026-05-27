@@ -35,7 +35,10 @@ class Client():
 
         self.ID = ID
 
-    def choose_model(self, global_model):
+    def choose_model(self, global_model, update_local_model=True):
+        print(f"local_model type is: {type(self.local_model)}")
+        print(f"global_model type is: {type(global_model)}")
+
         local_model_predictions = self.local_model.predict(self.X_test)
         global_model_predictions = global_model.predict(self.X_test)
 
@@ -43,7 +46,8 @@ class Client():
         global_metrics = self.evaluate(global_model_predictions)
 
         if global_metrics[settings.client.evaluate_type] < metrics[settings.client.evaluate_type]: 
-            self.local_model = global_model
+            if update_local_model:
+                self.local_model = global_model
             metrics = global_metrics
 
         return metrics
