@@ -138,9 +138,6 @@ async def run():
 
             logger.info("Modelo global recebido")
 
-            request_end = fedT_pb2.Request_Server(client_ID=ID)
-            await stub.end_of_transmission(request_end)
-
             server_trees_deserialised = await loop.run_in_executor(
                 executor,
                 utils.deserialise_several_trees,
@@ -172,44 +169,22 @@ async def run():
             inference_time = time.time() - start_inference_time
             logger.debug(f"\nDuração do Round: {format_time(round_time)}\nTempo de treinamento: {format_time(fit_time)}\nTempo de avaliação: {format_time(evaluate_time)}\nTempo de inferência: {format_time(inference_time)}")
 
+            request_end = fedT_pb2.Request_End(
+                client_ID = ID,
+                client_tree_size = client_serialise_tree_size,
+                server_tree_size = final_server_serialise_trees_size,
+                fit_time = fit_time,
+                mse = final_evaluate_metrics["mse"],
+                pearson = final_evaluate_metrics["pearson"],
+                round_time = round_time,
+                round_start_time = round_start_time, 
+                round_end_time = round_end_time,
+                evaluate_time = evaluate_time,
+                inference_time = inference_time
+            )
+            await stub.end_of_transmission(request_end)
+
             del server_model, client, server_trees_serialised, server_trees_deserialised
-
-            metrics = {
-                "trees_by_client": settings.number_of_clients,
-                "first_server_serialise_trees_size": first_server_serialise_trees_size,
-                "fit_time": fit_time,
-                "client_serialise_trees_size": client_serialise_tree_size,
-                "final_server_serialise_trees_size": final_server_serialise_trees_size,
-                "squared_error": final_evaluate_metrics["mse"],
-                "pearson_corr": final_evaluate_metrics["pearson"],
-                "round_time": round_time,
-                "round_start_time": round_start_time,
-                "round_end_time": round_end_time,
-                "evaluate_time": evaluate_time,
-                "inference_time": inference_time
-            }
-
-            base_file_name = f"{aggregation_strategy}_client-id-{ID}_{epsilon}"
-            new_results_folder = create_specific_result_folder(paths.results_folder, aggregation_strategy, f"client-id-{ID}") 
-            existing_files = [
-                file for file in os.listdir(new_results_folder)
-                if file.startswith(base_file_name) and file.endswith(".json")
-            ]
-            next_file_index = len(existing_files) + 1
-            result_file_name = f"{base_file_name}_{next_file_index}.json"
-            result_file_path = (new_results_folder / result_file_name).resolve()
-
-            logger.warning(f"Result path: {result_file_path}")
-
-            if result_file_path.exists():
-                with open(result_file_path, "r", encoding="utf-8") as file:
-                    data = json.load(file)
-            else:
-                data = {}
-
-            data[server_round] = metrics
-            with open(result_file_path, "w", encoding="utf-8") as f:
-                json.dump(data, f, indent=4, ensure_ascii=False)
 
             gc.collect()
             await asyncio.sleep(15)
@@ -287,17 +262,8 @@ if __name__ == "__main__":
         default=0,
         help="Client ID, os clientes devem ter IDs distintos."
     )
-    parse.add_argument(
-        "-st", "--strategy",
-        required=False,
-        type=str,
-        default=settings.aggregation_strategy,
-        choices=["all_trees", "threshold_trees"],
-        help="A estrátegia à ser utilizada."
-    )
     args = parse.parse_args()
     ID = args.client_id
-    aggregation_strategy = args.strategy
 
     log_level = logging.DEBUG if settings.client.debug else logging.INFO
     logger = utils.setup_logger(
