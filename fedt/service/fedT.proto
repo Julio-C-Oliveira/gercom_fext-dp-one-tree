@@ -30,6 +30,20 @@ message Forest_Server {
     bytes serialised_tree = 1;
 }
 
+message Request_End {
+    uint32 client_ID = 1;
+    uint32 client_tree_size = 2;
+    uint32 server_tree_size = 3;
+    double fit_time = 4;
+    double mse = 5;
+    double pearson = 6;
+    double round_time = 7;
+    double round_start_time = 8; 
+    double round_end_time = 9;
+    double evaluate_time = 10;
+    double inference_time = 11;
+}
+
 message OK {
     bool ok = 1;
 }

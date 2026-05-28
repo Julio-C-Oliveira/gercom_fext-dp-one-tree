@@ -70,7 +70,7 @@ python -m grpc_tools.protoc \
         - [x] Alterar o tratamento do request.
     - [x] Ajustar a get_server_settings, ela vai ser responsável por passar os parâmetros de privacidade.
     - [x] Ajustar os imports do server
-    - [ ] Ajustar o Cliente
+    - [x] Ajustar o Cliente
         - [x] Imports
         - [x] Modo de envio da árvore para o servidor. De iterator, para request único, no aggregate trees.
         - [x] Alterar HouseClient, para Client.

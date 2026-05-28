@@ -94,6 +94,52 @@ class Forest_Server(_message.Message):
 Global___Forest_Server: _TypeAlias = Forest_Server  # noqa: Y015
 
 @_typing.final
+class Request_End(_message.Message):
+    DESCRIPTOR: _descriptor.Descriptor
+
+    CLIENT_ID_FIELD_NUMBER: _builtins.int
+    CLIENT_TREE_SIZE_FIELD_NUMBER: _builtins.int
+    SERVER_TREE_SIZE_FIELD_NUMBER: _builtins.int
+    FIT_TIME_FIELD_NUMBER: _builtins.int
+    MSE_FIELD_NUMBER: _builtins.int
+    PEARSON_FIELD_NUMBER: _builtins.int
+    ROUND_TIME_FIELD_NUMBER: _builtins.int
+    ROUND_START_TIME_FIELD_NUMBER: _builtins.int
+    ROUND_END_TIME_FIELD_NUMBER: _builtins.int
+    EVALUATE_TIME_FIELD_NUMBER: _builtins.int
+    INFERENCE_TIME_FIELD_NUMBER: _builtins.int
+    client_ID: _builtins.int
+    client_tree_size: _builtins.int
+    server_tree_size: _builtins.int
+    fit_time: _builtins.float
+    mse: _builtins.float
+    pearson: _builtins.float
+    round_time: _builtins.float
+    round_start_time: _builtins.float
+    round_end_time: _builtins.float
+    evaluate_time: _builtins.float
+    inference_time: _builtins.float
+    def __init__(
+        self,
+        *,
+        client_ID: _builtins.int = ...,
+        client_tree_size: _builtins.int = ...,
+        server_tree_size: _builtins.int = ...,
+        fit_time: _builtins.float = ...,
+        mse: _builtins.float = ...,
+        pearson: _builtins.float = ...,
+        round_time: _builtins.float = ...,
+        round_start_time: _builtins.float = ...,
+        round_end_time: _builtins.float = ...,
+        evaluate_time: _builtins.float = ...,
+        inference_time: _builtins.float = ...,
+    ) -> None: ...
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["client_ID", b"client_ID", "client_tree_size", b"client_tree_size", "evaluate_time", b"evaluate_time", "fit_time", b"fit_time", "inference_time", b"inference_time", "mse", b"mse", "pearson", b"pearson", "round_end_time", b"round_end_time", "round_start_time", b"round_start_time", "round_time", b"round_time", "server_tree_size", b"server_tree_size"]  # noqa: Y015
+    def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
+
+Global___Request_End: _TypeAlias = Request_End  # noqa: Y015
+
+@_typing.final
 class OK(_message.Message):
     DESCRIPTOR: _descriptor.Descriptor
 
