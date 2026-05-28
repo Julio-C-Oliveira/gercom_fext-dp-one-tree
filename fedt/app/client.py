@@ -218,11 +218,74 @@ async def run():
 if __name__ == "__main__":
     parse = argparse.ArgumentParser(description="Federated Learning for Decision Trees with Differential Privacy")
     parse.add_argument(
+        "-j", "--number-of-jobs",
+        required=False,
+        type=int,
+        default=settings.number_of_jobs,
+        help="Números de núcleos que podem ser utilizados."
+    )
+    parse.add_argument(
+        "-a", "--global-max-target",
+        required=False,
+        type=int,
+        default=settings.differential_privacy.global_max_target,
+        help="O Maior valor que será aceito pelo modelo sem ser truncado."
+    )
+    parse.add_argument(
+        "-i", "--global-min-target",
+        required=False,
+        type=int,
+        default=settings.differential_privacy.global_min_target,
+        help="O Menor valor que será aceito pelo modelo sem ser truncado."
+    )
+    parse.add_argument(
+        "-d", "--max-tree-depth",
+        required=False,
+        type=int,
+        default=settings.differential_privacy.tree_max_depth,
+        help="A profundidade máxima das árvores."
+    )
+    parse.add_argument(
+        "-t", "--timeout",
+        required=False,
+        type=int,
+        default=settings.client.timeout,
+        help="O tempo que o cliente vai esperar por respostas do servidor."
+    )
+    parse.add_argument(
+        "-g", "--debug",
+        required=False,
+        action="store_true",
+        help="Essa flag serve para habilitar os logs de debug."
+    )
+    parse.add_argument(
+        "-e", "--evaluate-type",
+        required=False,
+        type=str,
+        default=settings.client.evaluate_type,
+        choices=["mse", "pearson"],
+        help="A métrica que o cliente irá utilizar para avaliar o modelo."
+    )
+    parse.add_argument(
+        "--ip",
+        required=False,
+        type=str,
+        default=settings.server.IP,
+        help="O IP do servidor."
+    )
+    parse.add_argument(
+        "--port",
+        required=False,
+        type=int,
+        default=settings.server.port,
+        help="A porta do servidor."
+    )
+    parse.add_argument(
         "-c", "--client-id",
         required=False,
         type=int,
         default=0,
-        help="Client ID"
+        help="Client ID, os clientes devem ter IDs distintos."
     )
     parse.add_argument(
         "-st", "--strategy",

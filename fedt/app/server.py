@@ -331,7 +331,35 @@ async def run_server(aggregation_strategy, seed, epsilon):
 if __name__ == "__main__":
     parse = argparse.ArgumentParser(description="Federated Learning for Decision Trees with Differential Privacy")
     parse.add_argument(
-        "-st", "--strategy",
+        "-j", "--number-of-jobs",
+        required=False,
+        type=int,
+        default=settings.number_of_jobs,
+        help="Números de núcleos que podem ser utilizados."
+    )
+    parse.add_argument(
+        "-c", "--number-of-clients",
+        required=False,
+        type=int,
+        default=settings.number_of_clients,
+        help="Números de clientes esperados."
+    )
+    parse.add_argument(
+        "-r", "--number-of-rounds",
+        required=False,
+        type=int,
+        default=settings.number_of_rounds,
+        help="Números de rounds que serão executado."
+    )
+    parse.add_argument(
+        "-s", "--seed",
+        required=False,
+        type=int,
+        default=settings.seed,
+        help="Random State, para produzir reprodutibilidade."
+    )
+    parse.add_argument(
+        "-t", "--strategy",
         required=False,
         type=str,
         default=settings.aggregation_strategy,
@@ -339,19 +367,47 @@ if __name__ == "__main__":
         help="A estrátegia à ser utilizada."
     )
     parse.add_argument(
-        "-s", "--seed",
-        required=False,
-        type=int,
-        default=None,
-        help="Random State, para produzir reprodutibilidade."
-    )
-    parse.add_argument(
         "-e", "--epsilon",
         required=False,
         type=float,
-        default=-1.0,
+        default=settings.differential_privacy.epsilon,
         help="Nível de privacidade, quanto menor o epsilon, maior o nível de privacidade aplicado."
     )
+    parse.add_argument(
+        "-b", "--beta",
+        required=False,
+        type=float,
+        default=settings.differential_privacy.balancing_coefficient,
+        help="Coeficiente de balanceamento, serve para controlar a distribuição de orçamento entre camadas internas e nós folha. Definido entre 0 e 1."
+    )
+    parse.add_argument(
+        "-t", "--timeout",
+        required=False,
+        type=int,
+        default=settings.server.timeout,
+        help="O tempo que o server vai esperar por respostas dos clientes."
+    )
+    parse.add_argument(
+        "-g", "--debug",
+        required=False,
+        action="store_true",
+        help="Essa flag serve para habilitar os logs de debug."
+    )
+    parse.add_argument(
+        "--ip",
+        required=False,
+        type=str,
+        default=settings.server.IP,
+        help="O IP do servidor."
+    )
+    parse.add_argument(
+        "--port",
+        required=False,
+        type=int,
+        default=settings.server.port,
+        help="A porta do servidor."
+    )
+
     args = parse.parse_args()
 
     aggregation_strategy = args.strategy

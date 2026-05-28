@@ -26,7 +26,6 @@ class DifferentialPrivacyConfig(BaseModel):
 
 class ClientConfig(BaseModel):
     timeout: int
-    debug: bool
     evaluate_type: str
 
 class ServerConfig(BaseModel):
@@ -38,7 +37,6 @@ class ServerConfig(BaseModel):
     validate_dataset_size: int
     print_every_trees_sent: int
     timeout: int
-    debug: bool
 
 class SettingsConfig(BaseModel):
     number_of_jobs: int

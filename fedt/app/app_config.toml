@@ -23,7 +23,6 @@ balancing_coefficient = 0.37
 
 [settings.client]
 timeout = 420
-debug = true
 evaluate_type = "mse"
 
 [settings.server]
@@ -35,7 +34,6 @@ threshold_type = "pearson"
 validate_dataset_size = 1000
 print_every_trees_sent = 50
 timeout = 360
-debug = true
 
 [dataset]
 train_test_split_size = 0.25
