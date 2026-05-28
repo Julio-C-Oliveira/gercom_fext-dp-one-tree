@@ -59,19 +59,6 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         self.seed = seed
         self.epsilon = epsilon
 
-        base_file_name = f"{self.aggregation_strategy}_server"
-
-        self.results_folder = create_specific_result_folder(paths.results_folder, self.aggregation_strategy, "server")
-        existing_files = [
-            file for file in os.listdir(self.results_folder)
-            if file.startswith(base_file_name) and file.endswith(".json")
-        ]
-        next_file_index = len(existing_files) + 1
-        result_file_name = f"{base_file_name}_{next_file_index}.json"
-        self.result_file_path = (self.results_folder / result_file_name).resolve()
-
-        logger.warning(f"Result path: {self.result_file_path}")
-
         self.lock = asyncio.Lock()
         self.aggregation_done = asyncio.Event()
 
@@ -101,6 +88,26 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         )
 
         self.global_trees = self.global_model.estimators_
+
+        self.current_round_clients_data = {}
+        self.all_execution_data = {}
+
+        base_file_name = f"{aggregation_strategy}_server"
+        new_results_folder = create_specific_result_folder(
+            results_folder=paths.results_folder,
+            strategy=aggregation_strategy,
+            base_name="server"
+        )
+        existing_files = [
+            file for file in os.listdir(new_results_folder)
+            if file.startswith(base_file_name) and file.endswith(".json")
+        ]
+
+        next_file_index = len(existing_files) + 1
+        result_file_name = f"{base_file_name}_{next_file_index}.json"
+        self.server_result_path = (new_results_folder / result_file_name).resolve()
+
+        logger.warning(f"Result path: {self.server_result_path}")
 
     def attach_shutdown_event(self, event):
         self.shutdown_event = event
@@ -216,6 +223,31 @@ class FedT(fedT_pb2_grpc.FedTServicer):
             epsilon=self.epsilon
         )
 
+    def save_round_results(self):
+        # Métricas do servidor:
+        server_metrics = {
+            "average_client_runtime": average_runtime(self.runtime_clients),
+            "aggregation_time": self.aggregation_time
+        }
+
+        # Métricas do cliente:
+        self.all_execution_data[f"round_{self.round}"] = {
+            "server": server_metrics,
+            "clients": self.current_round_clients_data.copy()
+        }
+
+        # Escrita:
+        try:
+            with open(self.server_result_path, "w", encoding="utf-8") as f:
+                json.dump(self.all_execution_data, f, indent=4, ensure_ascii=False)
+            logger.info(f"Resultados do Round {self.round} salvos com sucesso centralizadamente.")
+        except Exception as e:
+            logger.error(f"Erro ao salvar arquivo JSON: {e}")
+
+        # Limpa o buffer
+        self.current_round_clients.clear()
+
+
     async def end_of_transmission(self, request, context):
         end_time = time.time()
         async with self.lock:
@@ -227,30 +259,29 @@ class FedT(fedT_pb2_grpc.FedTServicer):
             self.clientes_respondidos += 1
             logger.info(f"O cliente {request.client_ID} finalizou round. Clientes respondidos: {self.clientes_respondidos}/{self.clientes_esperados}")
 
+            logger.info(f"Registrando as métricas do client: {request.client_ID}")
+            self.current_round_clients[f"client_{request.client_ID}"] = {
+                "client_tree_size": request.client_tree_size,
+                "server_tree_size": request.server_tree_size,
+                "fit_time": request.fit_time,
+                "mse": request.mse,
+                "pearson": request.pearson,
+                "round_time": request.round_time,
+                "round_start_time": request.round_start_time,
+                "round_end_time": request.round_end_time,
+                "evaluate_time": request.evaluate_time,
+                "inference_time": request.inference_time
+            }
+
             if self.clientes_respondidos == self.clientes_esperados:
                 logger.info("Todos os clientes finalizaram.")
+
+                self.save_round_results()
 
                 for i in self.runtime_clients:
                     logger.debug(f"Client ID: {i[0]} → tempo de execução: {utils.format_time(i[1][1] - i[1][0])}")
 
                 logger.info(f"Tempo de Execução Médio: {utils.format_time(average_runtime(self.runtime_clients))}")
-
-                self.metrics = {
-                    "aggregation_time": self.aggregation_time,
-                    "avg_execution_time": average_runtime(self.runtime_clients)
-                }
-
-
-                if self.result_file_path.exists():
-                    with open(self.result_file_path, "r", encoding="utf-8") as file:
-                        data = json.load(file)
-                else:
-                    data = {}
-
-                data[self.round] = self.metrics
-
-                with open(self.result_file_path, "w", encoding="utf-8") as f:
-                    json.dump(data, f, indent=4, ensure_ascii=False)
 
                 await self._reset_server_async()
 
