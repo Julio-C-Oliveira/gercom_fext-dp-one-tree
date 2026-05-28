@@ -15,5 +15,5 @@ epsilons = [-1.0, 10.0, 7.0, 5.0, 3.0, 1.0, 0.75, 0.5]
 balancing_coefficients = []
 number_of_simulations = 30
 aggregation_strategies = ["all_trees", "threshold_trees"]
-number_of_clients_for_test = 2
+number_of_clients_for_test = 20
 start_ID_for_clients = 0
