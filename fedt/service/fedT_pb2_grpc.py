@@ -51,7 +51,7 @@ class FedTStub(object):
                 _registered_method=True)
         self.end_of_transmission = channel.unary_unary(
                 '/fedT.FedT/end_of_transmission',
-                request_serializer=fedT__pb2.Request_Server.SerializeToString,
+                request_serializer=fedT__pb2.Request_End.SerializeToString,
                 response_deserializer=fedT__pb2.OK.FromString,
                 _registered_method=True)
 
@@ -103,7 +103,7 @@ def add_FedTServicer_to_server(servicer, server):
             ),
             'end_of_transmission': grpc.unary_unary_rpc_method_handler(
                     servicer.end_of_transmission,
-                    request_deserializer=fedT__pb2.Request_Server.FromString,
+                    request_deserializer=fedT__pb2.Request_End.FromString,
                     response_serializer=fedT__pb2.OK.SerializeToString,
             ),
     }
@@ -213,7 +213,7 @@ class FedT(object):
             request,
             target,
             '/fedT.FedT/end_of_transmission',
-            fedT__pb2.Request_Server.SerializeToString,
+            fedT__pb2.Request_End.SerializeToString,
             fedT__pb2.OK.FromString,
             options,
             channel_credentials,
