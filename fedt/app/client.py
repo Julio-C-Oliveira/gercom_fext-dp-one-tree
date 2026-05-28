@@ -158,7 +158,7 @@ async def run():
                 server_model
             )
             evaluate_time = time.time() - evaluate_start_time
-            logger.info(f"\nModelo Inicial:\nMean Squared Error: {final_evaluate_metrics["mse"]:.3f}\nPearson: {final_evaluate_metrics["pearson"]:.3f}")
+            logger.info(f"\nModelo Final:\nMean Squared Error: {final_evaluate_metrics["mse"]:.3f}\nPearson: {final_evaluate_metrics["pearson"]:.3f}")
 
             round_end_time = time.time()
             round_time = round_end_time - round_start_time
