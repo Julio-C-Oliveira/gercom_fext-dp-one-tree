@@ -24,7 +24,6 @@ balancing_coefficient = 0.37
 [settings.client]
 timeout = 420
 debug = true
-tree_depth = 4
 evaluate_type = "mse"
 
 [settings.server]

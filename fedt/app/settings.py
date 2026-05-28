@@ -27,7 +27,6 @@ class DifferentialPrivacyConfig(BaseModel):
 class ClientConfig(BaseModel):
     timeout: int
     debug: bool
-    tree_depth: int
     evaluate_type: str
 
 class ServerConfig(BaseModel):
