@@ -101,8 +101,10 @@ class Request_End(_message.Message):
     CLIENT_TREE_SIZE_FIELD_NUMBER: _builtins.int
     SERVER_TREE_SIZE_FIELD_NUMBER: _builtins.int
     FIT_TIME_FIELD_NUMBER: _builtins.int
-    MSE_FIELD_NUMBER: _builtins.int
-    PEARSON_FIELD_NUMBER: _builtins.int
+    INITIAL_MSE_FIELD_NUMBER: _builtins.int
+    INITIAL_PEARSON_FIELD_NUMBER: _builtins.int
+    FINAL_MSE_FIELD_NUMBER: _builtins.int
+    FINAL_PEARSON_FIELD_NUMBER: _builtins.int
     ROUND_TIME_FIELD_NUMBER: _builtins.int
     ROUND_START_TIME_FIELD_NUMBER: _builtins.int
     ROUND_END_TIME_FIELD_NUMBER: _builtins.int
@@ -112,8 +114,10 @@ class Request_End(_message.Message):
     client_tree_size: _builtins.int
     server_tree_size: _builtins.int
     fit_time: _builtins.float
-    mse: _builtins.float
-    pearson: _builtins.float
+    initial_mse: _builtins.float
+    initial_pearson: _builtins.float
+    final_mse: _builtins.float
+    final_pearson: _builtins.float
     round_time: _builtins.float
     round_start_time: _builtins.float
     round_end_time: _builtins.float
@@ -126,15 +130,17 @@ class Request_End(_message.Message):
         client_tree_size: _builtins.int = ...,
         server_tree_size: _builtins.int = ...,
         fit_time: _builtins.float = ...,
-        mse: _builtins.float = ...,
-        pearson: _builtins.float = ...,
+        initial_mse: _builtins.float = ...,
+        initial_pearson: _builtins.float = ...,
+        final_mse: _builtins.float = ...,
+        final_pearson: _builtins.float = ...,
         round_time: _builtins.float = ...,
         round_start_time: _builtins.float = ...,
         round_end_time: _builtins.float = ...,
         evaluate_time: _builtins.float = ...,
         inference_time: _builtins.float = ...,
     ) -> None: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["client_ID", b"client_ID", "client_tree_size", b"client_tree_size", "evaluate_time", b"evaluate_time", "fit_time", b"fit_time", "inference_time", b"inference_time", "mse", b"mse", "pearson", b"pearson", "round_end_time", b"round_end_time", "round_start_time", b"round_start_time", "round_time", b"round_time", "server_tree_size", b"server_tree_size"]  # noqa: Y015
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["client_ID", b"client_ID", "client_tree_size", b"client_tree_size", "evaluate_time", b"evaluate_time", "final_mse", b"final_mse", "final_pearson", b"final_pearson", "fit_time", b"fit_time", "inference_time", b"inference_time", "initial_mse", b"initial_mse", "initial_pearson", b"initial_pearson", "round_end_time", b"round_end_time", "round_start_time", b"round_start_time", "round_time", b"round_time", "server_tree_size", b"server_tree_size"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
 
 Global___Request_End: _TypeAlias = Request_End  # noqa: Y015
