@@ -240,11 +240,48 @@ class FedT(fedT_pb2_grpc.FedTServicer):
             epsilon=self.epsilon
         )
 
+    def _calculate_aggregated_metrics(self):
+        clients_data = self.current_round_clients_data.values()
+        
+        if not clients_data:
+            return {}
+
+        metrics_to_aggregate = [
+            "client_tree_size", "server_tree_size", "fit_time",
+            "initial_rmse", "initial_mse", "final_rmse", "final_mse",
+            "round_time", "evaluate_time", "inference_time"
+        ]
+
+        aggregated_metrics = {}
+
+        # Calcula média e desvio padrão
+        for metric in metrics_to_aggregate:
+            values = [client[metric] for client in clients_data if metric in client]
+            if values:
+                aggregated_metrics[f"{metric}_mean"] = float(np.mean(values))
+                aggregated_metrics[f"{metric}_std"] = float(np.std(values))
+            else:
+                aggregated_metrics[f"{metric}_mean"] = None
+                aggregated_metrics[f"{metric}_std"] = None
+
+        # Calcula o menor start_time e o maior end_time
+        start_times = [client["round_start_time"] for client in clients_data if "round_start_time" in client]
+        end_times = [client["round_end_time"] for client in clients_data if "round_end_time" in client]
+
+        aggregated_metrics["round_start_time_min"] = float(min(start_times)) if start_times else None
+        aggregated_metrics["round_end_time_max"] = float(max(end_times)) if end_times else None
+
+        return aggregated_metrics
+
     def save_round_results(self):
+        # Calcular as métricas agregadas dos clientes:
+        aggregated_client_metrics = self._calculate_aggregated_metrics()
+
         # Métricas do servidor:
         server_metrics = {
             "average_client_runtime": average_runtime(self.runtime_clients),
-            "aggregation_time": self.aggregation_time
+            "aggregation_time": self.aggregation_time,
+            **aggregated_client_metrics
         }
 
         # Métricas do cliente:
