@@ -44,6 +44,9 @@ class Client():
 
         global_model_predictions = global_model.predict(self.X_test)
         global_metrics = self.evaluate(global_model_predictions)
+
+        print(metrics)
+        print(global_metrics)
         
         if global_metrics[settings.client.evaluate_type] < metrics[settings.client.evaluate_type]: 
             self.local_model = global_model
@@ -61,3 +64,15 @@ class Client():
 
     def evaluate_inference_time(self, number_of_samples):
         self.local_model.predict(self.X_test[-number_of_samples:])
+
+
+def get_final_seed(id, seed):
+    if seed == None:
+        return None
+
+    seed = id + seed
+
+    if seed > 2**32:
+        seed = seed / 2**32
+
+    return seed

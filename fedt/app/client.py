@@ -18,6 +18,7 @@ from fedt.service import fedT_pb2_grpc
 
 from sklearn.ensemble import RandomForestRegressor
 from fedt.app.client_utils import Client
+from fedt.app.client_utils import get_final_seed
 
 import argparse
 import logging
@@ -44,7 +45,7 @@ async def run():
 
         dataset = None
 
-        for round_idx in range(settings.number_of_rounds):
+        for round_idx in range(1): # Gambiarra momentanea, irei adapatar para usar o cli.
             round_start_time = time.time()
             logger.warning(f"Round: {round_idx}")
 
@@ -60,6 +61,8 @@ async def run():
 
             server_round = getattr(server_reply_settings, "current_round", None)
 
+            seed = get_final_seed(ID, seed)
+
             logger.debug(f"Round Atual: {current_round}.")
             logger.debug(f"Seed: {seed}.")
             logger.debug(f"Epsilon: {epsilon}.")
@@ -71,8 +74,13 @@ async def run():
                 server_reply_settings = await stub.get_server_settings(request_settings)
 
                 current_round = server_reply_settings.current_round
-                seed = server_reply_settings.seed
+                if server_reply_settings.HasField('seed'):
+                    seed = server_reply_settings.seed.value
+                else:
+                    seed = None
                 epsilon = server_reply_settings.epsilon
+
+                seed = get_final_seed(ID, seed)
 
                 if time.time() - wait_start > settings.client.timeout:
                     raise RuntimeError(f"[Client {ID}] Timeout esperando servidor avançar do round {server_round} para {round_idx}")
