@@ -236,7 +236,7 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         logger.debug(f"Client ID: {request.client_ID}, solicitando as configurações.")
         return fedT_pb2.Server_Settings(
             current_round=self.round,
-            seed=wrappers_pb2.Int32Value(value=self.seed) if self.seed is not None else None,
+            seed=wrappers_pb2.UInt64Value(value=self.seed) if self.seed is not None else None,
             epsilon=self.epsilon
         )
 
