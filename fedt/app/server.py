@@ -93,9 +93,10 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         self.global_model = RandomForestRegressor( # Dar um jeito de nem precisar treinar um modelo.
             n_estimators=self.clientes_esperados,
             max_depth=3,
-            warm_start=True
+            warm_start=True,
+            random_state=self.seed
         )
-        data_train, label_train = utils.load_dataset_for_server()
+        data_train, label_train = utils.load_dataset_for_server(self.seed)
         self.global_model.fit( # Colocar na chamada da função.
             data_train, label_train
         )
@@ -336,7 +337,7 @@ class FedT(fedT_pb2_grpc.FedTServicer):
             max_depth=3,
             warm_start=True
         )
-        data_train, label_train = utils.load_dataset_for_server()
+        data_train, label_train = utils.load_dataset_for_server(self.seed)
         self.global_model.fit(data_train, label_train)
 
         self.global_trees = self.global_model.estimators_

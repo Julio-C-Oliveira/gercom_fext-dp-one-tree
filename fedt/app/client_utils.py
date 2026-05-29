@@ -36,9 +36,6 @@ class Client():
         self.ID = ID
 
     def choose_model(self, global_model, update_local_model=True):
-        print(f"local_model type is: {type(self.local_model)}")
-        print(f"global_model type is: {type(global_model)}")
-
         local_model_predictions = self.local_model.predict(self.X_test)
         global_model_predictions = global_model.predict(self.X_test)
 

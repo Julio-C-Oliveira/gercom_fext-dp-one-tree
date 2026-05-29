@@ -42,7 +42,7 @@ async def run():
     async with grpc_aio.insecure_channel(f"{settings.server.IP}:{settings.server.port}") as channel:
         stub = fedT_pb2_grpc.FedTStub(channel)
 
-        dataset = utils.load_house_client()
+        dataset = None
 
         for round_idx in range(settings.number_of_rounds):
             round_start_time = time.time()
@@ -77,6 +77,9 @@ async def run():
                 if time.time() - wait_start > settings.client.timeout:
                     raise RuntimeError(f"[Client {ID}] Timeout esperando servidor avançar do round {server_round} para {round_idx}")
 
+            if dataset is None:
+                dataset = utils.load_house_client(seed=seed)
+
             request_model = fedT_pb2.Request_Server(client_ID=ID)
             server_trees_serialised = []
             async for server_reply in stub.get_server_model(request_model):
@@ -97,7 +100,8 @@ async def run():
             server_model = RandomForestRegressor(
                 n_estimators=settings.number_of_clients,
                 max_depth=3,
-                warm_start=True
+                warm_start=True,
+                random_state=seed
             )
             server_model.fit(dataset[0], dataset[1])
             server_model.estimators_ = server_trees_deserialise

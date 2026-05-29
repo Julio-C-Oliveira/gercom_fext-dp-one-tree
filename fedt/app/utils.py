@@ -85,8 +85,8 @@ def load_dataset():
     
     return data, label
 
-def load_house_client():
-    rng = np.random.default_rng()
+def load_house_client(seed):
+    rng = np.random.default_rng(seed)
 
     X, y = load_dataset()
 
@@ -96,10 +96,10 @@ def load_house_client():
     X = X.iloc[idxs]
     y = y.iloc[idxs]
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=seed)
     return X_train, y_train, X_test, y_test
 
-def load_dataset_for_server() -> list:
+def load_dataset_for_server(seed) -> list:
     """
     ### Função:
     Carregar o dataset com apenas 3 amostras, 
@@ -112,11 +112,11 @@ def load_dataset_for_server() -> list:
     """
     data, label  = load_dataset()
 
-    data_train, _, label_train, _ = train_test_split(data, label, test_size=0.2)
+    data_train, _, label_train, _ = train_test_split(data, label, test_size=0.2, random_state=seed)
 
     return data_train[0:2], label_train[0:2]
 
-def load_server_side_validation_data():
+def load_server_side_validation_data(seed):
     """
     ### Função:
     Carregar o dataset com apenas 1000 amostras, 
@@ -129,7 +129,7 @@ def load_server_side_validation_data():
     """
     data, label  = load_dataset()
 
-    _, data_valid, _, label_valid = train_test_split(data, label, test_size=0.2)
+    _, data_valid, _, label_valid = train_test_split(data, label, test_size=0.2, random_state=seed)
     return data_valid[-settings.server.validate_dataset_size:], label_valid[-settings.server.validate_dataset_size:]
 
 def serialise_tree(tree_model) -> bytes:
