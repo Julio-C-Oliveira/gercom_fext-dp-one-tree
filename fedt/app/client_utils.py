@@ -45,6 +45,8 @@ class Client():
         if global_metrics[settings.client.evaluate_type] < metrics[settings.client.evaluate_type]: 
             if update_local_model:
                 self.local_model = global_model
+                return metrics
+
             metrics = global_metrics
 
         return metrics
