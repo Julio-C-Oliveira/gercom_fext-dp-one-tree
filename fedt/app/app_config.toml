@@ -8,7 +8,7 @@ graphics_path = 'graphics'
 
 [settings]
 number_of_jobs = 12
-number_of_clients = 20
+number_of_clients = 2
 number_of_rounds = 40
 seed = 42
 aggregation_strategy = "random"

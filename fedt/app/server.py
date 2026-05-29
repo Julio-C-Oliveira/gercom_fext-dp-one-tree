@@ -9,6 +9,7 @@ import grpc
 import grpc.aio as grpc_aio
 
 from sklearn.ensemble import RandomForestRegressor
+import numpy as np
 
 from fedt.app.settings import settings, paths
 
@@ -29,7 +30,7 @@ import argparse
 warnings.filterwarnings("ignore", category=ConstantInputWarning)
 
 # Configuração do log:
-log_level = logging.DEBUG if settings.server.debug else logging.INFO
+log_level = logging.DEBUG if True else logging.INFO
 logger = utils.setup_logger(
     name="SERVER",
     log_file="fedt_server.log",
@@ -50,12 +51,24 @@ def average_runtime(runtime_clients):
     runtime_average = runtime_sum / settings.number_of_clients
     return runtime_average
 
-
+# Falta as funções externas se adaptarem ao number of clients interno
 class FedT(fedT_pb2_grpc.FedTServicer):
-    def __init__(self, aggregation_strategy, seed, epsilon) -> None:
+    def __init__(
+        self, 
+        number_of_jobs,
+        number_of_clients,
+        number_of_rounds,
+        seed,
+        strategy,
+        epsilon, 
+        beta
+        ) -> None:
+
         super().__init__()
 
-        self.aggregation_strategy = aggregation_strategy
+        self.number_of_rounds = number_of_rounds
+
+        self.aggregation_strategy = strategy
         self.seed = seed
         self.epsilon = epsilon
 
@@ -66,7 +79,7 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         self.aggregation_realised = 0 # 0 waiting, 1 aggregating, 2 done.
 
         self.clientes_conectados = []
-        self.clientes_esperados = settings.number_of_clients
+        self.clientes_esperados = number_of_clients
         self.clientes_respondidos = 0
         self.trees_warehouse = []
         self.runtime_clients = []
@@ -75,7 +88,7 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         self._supervisor_started = False
         self.shutdown_event = None
 
-        self.executor = ThreadPoolExecutor(max_workers=settings.number_of_jobs)
+        self.executor = ThreadPoolExecutor(max_workers=number_of_jobs)
 
         self.global_model = RandomForestRegressor( # Dar um jeito de nem precisar treinar um modelo.
             n_estimators=self.clientes_esperados,
@@ -92,10 +105,13 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         self.current_round_clients_data = {}
         self.all_execution_data = {}
 
-        base_file_name = f"{aggregation_strategy}_server"
+        if epsilon >= 0:
+            base_file_name = f"{self.aggregation_strategy}_{epsilon}"
+        else:
+            base_file_name = f"{self.aggregation_strategy}_no-diff-privacy"
         new_results_folder = create_specific_result_folder(
             results_folder=paths.results_folder,
-            strategy=aggregation_strategy,
+            strategy=self.aggregation_strategy,
             base_name="server"
         )
         existing_files = [
@@ -240,12 +256,12 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         try:
             with open(self.server_result_path, "w", encoding="utf-8") as f:
                 json.dump(self.all_execution_data, f, indent=4, ensure_ascii=False)
-            logger.info(f"Resultados do Round {self.round} salvos com sucesso centralizadamente.")
+            logger.info(f"Resultados do Round {self.round} salvos com sucesso.")
         except Exception as e:
             logger.error(f"Erro ao salvar arquivo JSON: {e}")
 
         # Limpa o buffer
-        self.current_round_clients.clear()
+        self.current_round_clients_data.clear()
 
 
     async def end_of_transmission(self, request, context):
@@ -260,10 +276,11 @@ class FedT(fedT_pb2_grpc.FedTServicer):
             logger.info(f"O cliente {request.client_ID} finalizou round. Clientes respondidos: {self.clientes_respondidos}/{self.clientes_esperados}")
 
             logger.info(f"Registrando as métricas do client: {request.client_ID}")
-            self.current_round_clients[f"client_{request.client_ID}"] = {
+            self.current_round_clients_data[f"client_{request.client_ID}"] = {
                 "client_tree_size": request.client_tree_size,
                 "server_tree_size": request.server_tree_size,
                 "fit_time": request.fit_time,
+                "rmse": np.sqrt(request.mse),
                 "mse": request.mse,
                 "pearson": request.pearson,
                 "round_time": request.round_time,
@@ -288,7 +305,7 @@ class FedT(fedT_pb2_grpc.FedTServicer):
                 logger.warning(f"Round {self.round} finalizado")
                 self.round += 1
 
-                if self.round >= settings.number_of_rounds:
+                if self.round >= self.number_of_rounds:
                     logger.warning(f"Encerrando treinamento em 5 segundos...")
                     self.shutdown_event.set()
                     return fedT_pb2.OK(ok=1)
@@ -328,15 +345,19 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         self.runtime_clients = []
         self.aggregation_time = 0.0
 
-
-async def run_server(aggregation_strategy, seed, epsilon):
+    
+async def run_server(parse_args):
     logger.info("Servidor inicializando...")
 
     server = grpc_aio.server()
     servicer = FedT(
-        aggregation_strategy, 
-        seed, 
-        epsilon
+        number_of_jobs=parse_args.number_of_jobs,
+        number_of_clients=parse_args.number_of_clients,
+        number_of_rounds=parse_args.number_of_rounds,
+        seed=parse_args.seed,
+        strategy=parse_args.strategy,
+        epsilon=parse_args.epsilon,
+        beta=parse_args.beta
     )
 
     shutdown_event = asyncio.Event()
@@ -344,10 +365,10 @@ async def run_server(aggregation_strategy, seed, epsilon):
 
     fedT_pb2_grpc.add_FedTServicer_to_server(servicer, server)
 
-    server.add_insecure_port(f"{settings.server.IP}:{settings.server.port}")
+    server.add_insecure_port(f"{parse_args.ip}:{parse_args.port}")
     
     await server.start()
-    logger.info(f"Servidor ativo - {settings.server.IP}:{settings.server.port}")
+    logger.info(f"Servidor ativo - {parse_args.ip}:{parse_args.port}")
 
     await shutdown_event.wait()
     logger.warning("Shutdown event recebido, desligando o servidor...")
@@ -412,7 +433,7 @@ if __name__ == "__main__":
         help="Coeficiente de balanceamento, serve para controlar a distribuição de orçamento entre camadas internas e nós folha. Definido entre 0 e 1."
     )
     parse.add_argument(
-        "-t", "--timeout",
+        "-o", "--timeout",
         required=False,
         type=int,
         default=settings.server.timeout,
@@ -439,16 +460,8 @@ if __name__ == "__main__":
         help="A porta do servidor."
     )
 
-    args = parse.parse_args()
-
-    aggregation_strategy = args.strategy
-    seed = args.seed
-    epsilon = args.epsilon
-
     asyncio.run(
         run_server(
-            aggregation_strategy=aggregation_strategy,
-            seed=seed,
-            epsilon=epsilon
+            parse_args=parse.parse_args()
         )
     )

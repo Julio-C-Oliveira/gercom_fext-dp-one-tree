@@ -265,7 +265,7 @@ if __name__ == "__main__":
     args = parse.parse_args()
     ID = args.client_id
 
-    log_level = logging.DEBUG if settings.client.debug else logging.INFO
+    log_level = logging.DEBUG if True else logging.INFO
     logger = utils.setup_logger(
         name=f"Client {ID}",
         log_file=f"fedt_client_{ID}.log",
