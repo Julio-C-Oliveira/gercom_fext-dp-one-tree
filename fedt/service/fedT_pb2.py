@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from google.protobuf import wrappers_pb2 as google_dot_protobuf_dot_wrappers__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nfedT.proto\x12\x04\x66\x65\x64T\x1a\x1egoogle/protobuf/wrappers.proto\"#\n\x0eRequest_Server\x12\x11\n\tclient_ID\x18\x01 \x01(\r\"d\n\x0fServer_Settings\x12\x15\n\rcurrent_round\x18\x01 \x01(\r\x12)\n\x04seed\x18\x02 \x01(\x0b\x32\x1b.google.protobuf.Int32Value\x12\x0f\n\x07\x65psilon\x18\x03 \x01(\x02\"9\n\x0b\x43lient_Tree\x12\x11\n\tclient_ID\x18\x01 \x01(\r\x12\x17\n\x0fserialised_tree\x18\x02 \x01(\x0c\"(\n\rForest_Server\x12\x17\n\x0fserialised_tree\x18\x01 \x01(\x0c\"\xb3\x02\n\x0bRequest_End\x12\x11\n\tclient_ID\x18\x01 \x01(\r\x12\x18\n\x10\x63lient_tree_size\x18\x02 \x01(\r\x12\x18\n\x10server_tree_size\x18\x03 \x01(\r\x12\x10\n\x08\x66it_time\x18\x04 \x01(\x01\x12\x13\n\x0binitial_mse\x18\x05 \x01(\x01\x12\x17\n\x0finitial_pearson\x18\x06 \x01(\x01\x12\x11\n\tfinal_mse\x18\x07 \x01(\x01\x12\x15\n\rfinal_pearson\x18\x08 \x01(\x01\x12\x12\n\nround_time\x18\t \x01(\x01\x12\x18\n\x10round_start_time\x18\n \x01(\x01\x12\x16\n\x0eround_end_time\x18\x0b \x01(\x01\x12\x15\n\revaluate_time\x18\x0c \x01(\x01\x12\x16\n\x0einference_time\x18\r \x01(\x01\"\x10\n\x02OK\x12\n\n\x02ok\x18\x01 \x01(\x08\x32\xfc\x01\n\x04\x46\x65\x64T\x12;\n\x0f\x61ggregate_trees\x12\x11.fedT.Client_Tree\x1a\x13.fedT.Forest_Server0\x01\x12?\n\x10get_server_model\x12\x14.fedT.Request_Server\x1a\x13.fedT.Forest_Server0\x01\x12\x42\n\x13get_server_settings\x12\x14.fedT.Request_Server\x1a\x15.fedT.Server_Settings\x12\x32\n\x13\x65nd_of_transmission\x12\x11.fedT.Request_End\x1a\x08.fedT.OKb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nfedT.proto\x12\x04\x66\x65\x64T\x1a\x1egoogle/protobuf/wrappers.proto\"#\n\x0eRequest_Server\x12\x11\n\tclient_ID\x18\x01 \x01(\r\"e\n\x0fServer_Settings\x12\x15\n\rcurrent_round\x18\x01 \x01(\r\x12*\n\x04seed\x18\x02 \x01(\x0b\x32\x1c.google.protobuf.UInt64Value\x12\x0f\n\x07\x65psilon\x18\x03 \x01(\x02\"9\n\x0b\x43lient_Tree\x12\x11\n\tclient_ID\x18\x01 \x01(\r\x12\x17\n\x0fserialised_tree\x18\x02 \x01(\x0c\"(\n\rForest_Server\x12\x17\n\x0fserialised_tree\x18\x01 \x01(\x0c\"\xb3\x02\n\x0bRequest_End\x12\x11\n\tclient_ID\x18\x01 \x01(\r\x12\x18\n\x10\x63lient_tree_size\x18\x02 \x01(\r\x12\x18\n\x10server_tree_size\x18\x03 \x01(\r\x12\x10\n\x08\x66it_time\x18\x04 \x01(\x01\x12\x13\n\x0binitial_mse\x18\x05 \x01(\x01\x12\x17\n\x0finitial_pearson\x18\x06 \x01(\x01\x12\x11\n\tfinal_mse\x18\x07 \x01(\x01\x12\x15\n\rfinal_pearson\x18\x08 \x01(\x01\x12\x12\n\nround_time\x18\t \x01(\x01\x12\x18\n\x10round_start_time\x18\n \x01(\x01\x12\x16\n\x0eround_end_time\x18\x0b \x01(\x01\x12\x15\n\revaluate_time\x18\x0c \x01(\x01\x12\x16\n\x0einference_time\x18\r \x01(\x01\"\x10\n\x02OK\x12\n\n\x02ok\x18\x01 \x01(\x08\x32\xfc\x01\n\x04\x46\x65\x64T\x12;\n\x0f\x61ggregate_trees\x12\x11.fedT.Client_Tree\x1a\x13.fedT.Forest_Server0\x01\x12?\n\x10get_server_model\x12\x14.fedT.Request_Server\x1a\x13.fedT.Forest_Server0\x01\x12\x42\n\x13get_server_settings\x12\x14.fedT.Request_Server\x1a\x15.fedT.Server_Settings\x12\x32\n\x13\x65nd_of_transmission\x12\x11.fedT.Request_End\x1a\x08.fedT.OKb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -35,15 +35,15 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_REQUEST_SERVER']._serialized_start=52
   _globals['_REQUEST_SERVER']._serialized_end=87
   _globals['_SERVER_SETTINGS']._serialized_start=89
-  _globals['_SERVER_SETTINGS']._serialized_end=189
-  _globals['_CLIENT_TREE']._serialized_start=191
-  _globals['_CLIENT_TREE']._serialized_end=248
-  _globals['_FOREST_SERVER']._serialized_start=250
-  _globals['_FOREST_SERVER']._serialized_end=290
-  _globals['_REQUEST_END']._serialized_start=293
-  _globals['_REQUEST_END']._serialized_end=600
-  _globals['_OK']._serialized_start=602
-  _globals['_OK']._serialized_end=618
-  _globals['_FEDT']._serialized_start=621
-  _globals['_FEDT']._serialized_end=873
+  _globals['_SERVER_SETTINGS']._serialized_end=190
+  _globals['_CLIENT_TREE']._serialized_start=192
+  _globals['_CLIENT_TREE']._serialized_end=249
+  _globals['_FOREST_SERVER']._serialized_start=251
+  _globals['_FOREST_SERVER']._serialized_end=291
+  _globals['_REQUEST_END']._serialized_start=294
+  _globals['_REQUEST_END']._serialized_end=601
+  _globals['_OK']._serialized_start=603
+  _globals['_OK']._serialized_end=619
+  _globals['_FEDT']._serialized_start=622
+  _globals['_FEDT']._serialized_end=874
 # @@protoc_insertion_point(module_scope)

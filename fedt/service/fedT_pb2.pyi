@@ -43,12 +43,12 @@ class Server_Settings(_message.Message):
     current_round: _builtins.int
     epsilon: _builtins.float
     @_builtins.property
-    def seed(self) -> _wrappers_pb2.Int32Value: ...
+    def seed(self) -> _wrappers_pb2.UInt64Value: ...
     def __init__(
         self,
         *,
         current_round: _builtins.int = ...,
-        seed: _wrappers_pb2.Int32Value | None = ...,
+        seed: _wrappers_pb2.UInt64Value | None = ...,
         epsilon: _builtins.float = ...,
     ) -> None: ...
     _HasFieldArgType: _TypeAlias = _typing.Literal["seed", b"seed"]  # noqa: Y015
