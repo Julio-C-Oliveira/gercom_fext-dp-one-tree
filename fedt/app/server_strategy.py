@@ -47,6 +47,6 @@ class Strategy():
 
         tree_scores = list(map(map_function, received_trees))
 
-        selected_trees = [received_trees[i] for i in range(received_trees_number) if tree_scores[i] > threshold_value]
+        selected_trees = [received_trees[i] for i in range(received_trees_number) if tree_scores[i] < threshold_value] # Tenho que tornar essa condição genérica. 
 
         return selected_trees
