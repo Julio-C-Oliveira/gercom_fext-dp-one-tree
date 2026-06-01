@@ -61,7 +61,9 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         seed,
         strategy,
         epsilon, 
-        beta
+        beta,
+        threshold_type,
+        threshold_value
         ) -> None:
 
         super().__init__()
@@ -84,6 +86,9 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         self.trees_warehouse = []
         self.runtime_clients = []
         self.aggregation_time = 0.0
+
+        self.threshold_type = threshold_type
+        self.threshold_value = threshold_value
 
         self._supervisor_started = False
         self.shutdown_event = None
@@ -134,7 +139,7 @@ class FedT(fedT_pb2_grpc.FedTServicer):
             case "all_trees":
                 self.global_model.estimators_ = Strategy.all_trees(received_trees)
             case "threshold_trees": 
-                self.global_model.estimators_ = Strategy.threshold_trees(self.validation_dataset, received_trees)
+                self.global_model.estimators_ = Strategy.threshold_trees(self.validation_dataset, received_trees, self.threshold_type, self.threshold_value)
             case _:
                 self.global_model.estimators_ = Strategy.all_trees(received_trees)
 
@@ -398,7 +403,9 @@ async def run_server(parse_args):
         seed=parse_args.seed,
         strategy=parse_args.strategy,
         epsilon=parse_args.epsilon,
-        beta=parse_args.beta
+        beta=parse_args.beta,
+        threshold_type=parse_args.threshold_type,
+        threshold_value=parse_args.threshold_value
     )
 
     shutdown_event = asyncio.Event()
@@ -472,6 +479,20 @@ if __name__ == "__main__":
         type=float,
         default=settings.differential_privacy.balancing_coefficient,
         help="Coeficiente de balanceamento, serve para controlar a distribuição de orçamento entre camadas internas e nós folha. Definido entre 0 e 1."
+    )
+    parse.add_argument(
+        "-t", "--threshold-type",
+        required=False,
+        type=str,
+        default=settings.server.threshold_type,
+        help=""
+    )
+    parse.add_argument(
+        "-v", "--threshold-value",
+        required=False,
+        type=float,
+        default=settings.server.threshold_value,
+        help=""
     )
     parse.add_argument(
         "-o", "--timeout",

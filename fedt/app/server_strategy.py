@@ -20,7 +20,7 @@ class Strategy():
         return received_trees
 
     @staticmethod
-    def threshold_trees(validation_dataset, received_trees: list[DecisionTreeRegressor]):
+    def threshold_trees(validation_dataset, received_trees: list[DecisionTreeRegressor], threshold_type, threshold_value):
         """
         Returns the trees that cross the threshold.
 
@@ -41,12 +41,12 @@ class Strategy():
 
         received_trees_number = len(received_trees)
 
-        threshold, evaluate_function = server_utils.get_threshold_and_evaluate_function()
+        evaluate_function = server_utils.get_threshold_and_evaluate_function(threshold_type)
 
         map_function = lambda tree: evaluate_function(y_validate, tree.predict(X_validate))
 
         tree_scores = list(map(map_function, received_trees))
 
-        selected_trees = [received_trees[i] for i in range(received_trees_number) if tree_scores[i] > threshold]
+        selected_trees = [received_trees[i] for i in range(received_trees_number) if tree_scores[i] > threshold_value]
 
         return selected_trees
