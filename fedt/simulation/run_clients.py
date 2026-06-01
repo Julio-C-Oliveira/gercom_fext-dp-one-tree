@@ -39,8 +39,7 @@ def run_clients(number_of_clients_for_test, start_ID_for_clients):
                     cmd = [
                         "python", 
                         "-m", "fedt.app.client", 
-                        "--client-id", str(i + int(start_ID_for_clients)), 
-                        "--strategy", strategy
+                        "--client-id", str(i + int(start_ID_for_clients))
                     ]
 
                     p = subprocess.Popen(cmd)
