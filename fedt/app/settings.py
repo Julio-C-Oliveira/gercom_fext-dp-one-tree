@@ -31,7 +31,7 @@ class ClientConfig(BaseModel):
 class ServerConfig(BaseModel):
     IP: str
     port: str
-    threhsold_value: float
+    threshold_value: float
     threshold_type: str
     validate_dataset_size: int
     print_every_trees_sent: int
