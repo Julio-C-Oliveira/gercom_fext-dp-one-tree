@@ -17,3 +17,63 @@ number_of_simulations = 30
 aggregation_strategies = ["all_trees", "threshold_trees"]
 number_of_clients_for_test = 20
 start_ID_for_clients = 0
+
+[[simulation.epsilon_settings]]
+epsilon = -1.0
+balancing_coefficient = 0.37
+threshold_value = 10438.2203
+threshold_type = "mse"
+
+[[simulation.epsilon_settings]]
+epsilon = 10.0
+balancing_coefficient = 0.37
+threshold_value = 35360.0958
+threshold_type = "mse"
+
+[[simulation.epsilon_settings]]
+epsilon = 7.0
+balancing_coefficient = 0.37
+threshold_value = 53336.1329
+threshold_type = "mse"
+
+[[simulation.epsilon_settings]]
+epsilon = 5.0
+balancing_coefficient = 0.37
+threshold_value = 67769.5789
+threshold_type = "mse"
+
+[[simulation.epsilon_settings]]
+epsilon = 3.0
+balancing_coefficient = 0.37
+threshold_value = 71711.7893
+threshold_type = "mse"
+
+[[simulation.epsilon_settings]]
+epsilon = 1.0
+balancing_coefficient = 0.37
+threshold_value = 127543.9178
+threshold_type = "mse"
+
+[[simulation.epsilon_settings]]
+epsilon = 0.75
+balancing_coefficient = 0.37
+threshold_value = 118717.2530
+threshold_type = "mse"
+
+[[simulation.epsilon_settings]]
+epsilon = 0.5
+balancing_coefficient = 0.37
+threshold_value = 153659.0970
+threshold_type = "mse"
+
+[[simulation.epsilon_settings]]
+epsilon = 0.25
+balancing_coefficient = 0.37
+threshold_value = 203659.0970
+threshold_type = "mse"
+
+[[simulation.epsilon_settings]]
+epsilon = 0.1
+balancing_coefficient = 0.37
+threshold_value = 253659.0970
+threshold_type = "mse"

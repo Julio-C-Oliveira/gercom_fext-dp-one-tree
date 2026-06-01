@@ -8,11 +8,16 @@ base_path = Path(base_path).resolve()
 
 config_path = (base_path / "fedt/simulation/sim_config.toml").resolve()
 
+class EpsilonSetting(BaseModel):
+    epsilon: float
+    balancing_coefficient: float  
+    threshold_value: float
+    threshold_type: str
+
 class SimulationConfig(BaseModel):
     seeds: list[int]
     tree_max_depths: list[int]
-    epsilons: list[float]
-    balancing_coefficients: list[float]
+    epsilon_settings: list[EpsilonSetting]
     number_of_simulations: int
     aggregation_strategies: list[str]
     number_of_clients_for_test: int
