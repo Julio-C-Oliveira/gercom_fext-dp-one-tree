@@ -2,13 +2,20 @@ import argparse
 import time
 import subprocess
 
+import numpy as np
+
 from fedt.simulation.settings import simulation
 
-def run_server():
-    for epsilon in simulation.epsilons:
+def generate_random_numbers(number_of_seeds):
+    rng = np.random.default_rng()
+    return rng.integers(low=0, high=4294967296, size=number_of_seeds, dtype=np.uint64)
+
+def run_server(seeds):
+    for setting in simulation.epsilon_settings:
         for strategy in simulation.aggregation_strategies:
-            for i in range(simulation.number_of_simulations):
+            for i, seed in enumerate(seeds):
                 print(f"Iniciando o servidor... Simulação: {i}")
+                print(f"\n[Epsilon: {setting.epsilon}] [Estratégia: {strategy}]")
 
                 # Inicialização das métricas externas:
                 # net_proc = subprocess.Popen(
@@ -32,7 +39,12 @@ def run_server():
                         "python", 
                         "-m", "fedt.app.server",
                         "--strategy", str(strategy),
-                        "--epsilon", str(epsilon)
+                        "--epsilon", str(setting.epsilon),
+                        "--number-of-clients", str(20), # Colocar pra CLI.
+                        "--number-of-rounds", str(1), # Colocar pra CLI.
+                        "--seed", str(seed),
+                        "--threshold-type", str(setting.threshold_type),
+                        "--threshold-value", str(setting.threshold_value)
                     ]
                 )
 
@@ -68,4 +80,9 @@ if __name__ == "__main__":
     )
     args = parse.parse_args()
 
-    run_server()
+    if not args.run_with_seeds:
+        seeds = generate_random_numbers(simulation.number_of_simulations)
+    else:
+        seeds = simulation.seeds
+
+    run_server(seeds)
