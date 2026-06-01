@@ -280,3 +280,14 @@ def kill_processes(processes, name):
         for proc in list(plist):
             if proc.name() == name:
                 os.kill(proc.pid, signal.SIGINT)
+
+def get_final_seed(id, seed):
+    if seed == None:
+        return None
+
+    seed = id + seed
+
+    if seed > 2**32:
+        seed = seed / 2**32
+
+    return seed

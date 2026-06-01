@@ -18,7 +18,7 @@ from fedt.service import fedT_pb2_grpc
 
 from sklearn.ensemble import RandomForestRegressor
 from fedt.app.client_utils import Client
-from fedt.app.client_utils import get_final_seed
+from fedt.app.utils import get_final_seed
 
 import argparse
 import logging

@@ -64,15 +64,3 @@ class Client():
 
     def evaluate_inference_time(self, number_of_samples):
         self.local_model.predict(self.X_test[-number_of_samples:])
-
-
-def get_final_seed(id, seed):
-    if seed == None:
-        return None
-
-    seed = id + seed
-
-    if seed > 2**32:
-        seed = seed / 2**32
-
-    return seed

@@ -106,7 +106,9 @@ class FedT(fedT_pb2_grpc.FedTServicer):
             data_train, label_train
         )
 
-        self.validation_dataset = utils.load_server_side_validation_data(self.seed)
+        self.validation_dataset = utils.load_server_side_validation_data(
+            seed=utils.get_final_seed(self.clientes_esperados, self.seed)
+        )
 
         self.global_trees = self.global_model.estimators_
 
