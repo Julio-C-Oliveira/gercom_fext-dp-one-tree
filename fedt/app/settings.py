@@ -31,8 +31,7 @@ class ClientConfig(BaseModel):
 class ServerConfig(BaseModel):
     IP: str
     port: str
-    pearson_threshold: float
-    mean_squared_error_threhsold: float
+    threhsold_value: float
     threshold_type: str
     validate_dataset_size: int
     print_every_trees_sent: int

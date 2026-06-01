@@ -28,8 +28,7 @@ evaluate_type = "mse"
 [settings.server]
 IP = "0.0.0.0"
 port = "50051"
-pearson_threshold = 0.3
-mean_squared_error_threhsold = 0
+threhsold_value = 0
 threshold_type = "pearson"
 validate_dataset_size = 1000
 print_every_trees_sent = 50
