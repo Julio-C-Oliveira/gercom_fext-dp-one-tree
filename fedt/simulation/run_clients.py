@@ -5,7 +5,7 @@ import subprocess
 from fedt.simulation.settings import simulation
 
 def run_clients(number_of_clients_for_test, start_ID_for_clients):
-    for epsilon in simulation.epsilons:
+    for setting in simulation.epsilon_settings:
         for strategy in simulation.aggregation_strategies:
             for i in range(simulation.number_of_simulations):
                 print(f"Iniciando os clientes... Simulação: {i}")
