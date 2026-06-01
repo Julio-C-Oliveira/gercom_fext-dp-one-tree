@@ -106,6 +106,8 @@ class FedT(fedT_pb2_grpc.FedTServicer):
             data_train, label_train
         )
 
+        self.validation_dataset = utils.load_server_side_validation_data(self.seed)
+
         self.global_trees = self.global_model.estimators_
 
         self.current_round_clients_data = {}
@@ -481,18 +483,18 @@ if __name__ == "__main__":
         help="Coeficiente de balanceamento, serve para controlar a distribuição de orçamento entre camadas internas e nós folha. Definido entre 0 e 1."
     )
     parse.add_argument(
-        "-t", "--threshold-type",
+        "-y", "--threshold-type",
         required=False,
         type=str,
         default=settings.server.threshold_type,
-        help=""
+        help="O tipo de limiar que será utilizado na estrátegia threshold trees."
     )
     parse.add_argument(
         "-v", "--threshold-value",
         required=False,
         type=float,
         default=settings.server.threshold_value,
-        help=""
+        help="O valor de limiar que será utilizado na estrátegia threshold trees."
     )
     parse.add_argument(
         "-o", "--timeout",
