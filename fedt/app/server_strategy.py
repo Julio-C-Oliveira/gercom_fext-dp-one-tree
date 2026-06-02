@@ -24,7 +24,7 @@ class Strategy():
         return received_trees
 
     @staticmethod
-    def threshold_trees(validation_dataset, received_trees: list[DecisionTreeRegressor], threshold_type, threshold_value):
+    def threshold_trees(validation_dataset, received_trees: list[DecisionTreeRegressor], threshold_type, threshold_value, threshold_multiplier):
         """
         Returns the trees that cross the threshold.
 
@@ -56,8 +56,9 @@ class Strategy():
         if not selected_trees:
             logger.warning("Nenhuma árvore foi selecionada. Iniciando adaptação.")
             logger.info(f"Threshold Atual: {threshold_value}")
+            logger.info(f"Fator: {threshold_multiplier}")
             while not selected_trees:
-                threshold_value *= 1.001
+                threshold_value *= threshold_multiplier
                 logger.info(f"Threshold Novo: {threshold_value}")
                 selected_trees = [received_trees[i] for i in range(received_trees_number) if tree_scores[i] < threshold_value]
 

@@ -33,6 +33,7 @@ class ServerConfig(BaseModel):
     port: str
     threshold_value: float
     threshold_type: str
+    threshold_multiplier: float
     validate_dataset_size: int
     print_every_trees_sent: int
     timeout: int

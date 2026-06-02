@@ -89,6 +89,7 @@ class FedT(fedT_pb2_grpc.FedTServicer):
 
         self.threshold_type = threshold_type
         self.threshold_value = threshold_value
+        self.threshold_multiplier = threshold_multiplier
 
         self._supervisor_started = False
         self.shutdown_event = None
@@ -143,7 +144,11 @@ class FedT(fedT_pb2_grpc.FedTServicer):
             case "all_trees":
                 self.global_model.estimators_ = Strategy.all_trees(received_trees)
             case "threshold_trees": 
-                self.global_model.estimators_ = Strategy.threshold_trees(self.validation_dataset, received_trees, self.threshold_type, self.threshold_value)
+                self.global_model.estimators_ = Strategy.threshold_trees(
+                    self.validation_dataset, 
+                    received_trees, 
+                    self.threshold_type, self.threshold_value, self.threshold_multiplier
+                )
             case _:
                 self.global_model.estimators_ = Strategy.all_trees(received_trees)
 
@@ -497,6 +502,13 @@ if __name__ == "__main__":
         type=float,
         default=settings.server.threshold_value,
         help="O valor de limiar que será utilizado na estrátegia threshold trees."
+    )
+    parse.add_argument(
+        "-m", "--threshold-multiplier",
+        required=False,
+        type=float,
+        default=settings.server.threshold_multiplier,
+        help="O valor que irá ser multiplicado pelo limiar, caso nenhuma árvore seja selecionada, serve para ajustar o limiar."
     )
     parse.add_argument(
         "-o", "--timeout",
