@@ -1,7 +1,11 @@
+import logging
+
 from fedt.app import server_utils
 
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.tree import DecisionTreeRegressor
+
+logger = logging.getLogger("SERVER")
 
 class Strategy():
     @staticmethod
@@ -48,5 +52,14 @@ class Strategy():
         tree_scores = list(map(map_function, received_trees))
 
         selected_trees = [received_trees[i] for i in range(received_trees_number) if tree_scores[i] < threshold_value] # Tenho que tornar essa condição genérica. 
+
+        if not selected_trees:
+            logger.warning("Nenhuma árvore foi selecionada. Iniciando adaptação.")
+            logger.info(f"Threshold Atual: {threshold_value}")
+            while not selected_trees:
+                threshold_value *= 1.001
+                logger.info(f"Threshold Novo: {threshold_value}")
+                selected_trees = [received_trees[i] for i in range(received_trees_number) if tree_scores[i] < threshold_value]
+
 
         return selected_trees
