@@ -13,6 +13,7 @@ class EpsilonSetting(BaseModel):
     balancing_coefficient: float  
     threshold_value: float
     threshold_type: str
+    threshold_multiplier: float
 
 class SimulationConfig(BaseModel):
     seeds: list[int]
