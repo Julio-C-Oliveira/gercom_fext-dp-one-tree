@@ -44,7 +44,8 @@ def run_server(seeds):
                         "--number-of-rounds", str(1), # Colocar pra CLI.
                         "--seed", str(seed),
                         "--threshold-type", str(setting.threshold_type),
-                        "--threshold-value", str(setting.threshold_value)
+                        "--threshold-value", str(setting.threshold_value),
+                        "--threshold-multiplier", str(setting.threshold_multiplier)
                     ]
                 )
 

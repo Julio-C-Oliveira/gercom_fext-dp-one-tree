@@ -460,7 +460,7 @@ if __name__ == "__main__":
         required=False,
         type=int,
         default=settings.number_of_rounds,
-        help="Números de rounds que serão executado."
+        help="Números de rounds que serão executados."
     )
     parse.add_argument(
         "-s", "--seed",

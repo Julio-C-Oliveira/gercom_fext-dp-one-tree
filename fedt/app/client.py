@@ -45,7 +45,7 @@ async def run():
 
         dataset = None
 
-        for round_idx in range(1): # Gambiarra momentanea, irei adapatar para usar o cli.
+        for round_idx in range(number_of_rounds): # Gambiarra momentanea, irei adapatar para usar o cli.
             round_start_time = time.time()
             logger.warning(f"Round: {round_idx}")
 
@@ -256,6 +256,13 @@ if __name__ == "__main__":
         help="A métrica que o cliente irá utilizar para avaliar o modelo."
     )
     parse.add_argument(
+        "-r", "--number-of-rounds",
+        required=False,
+        type=int,
+        default=settings.number_of_rounds,
+        help="Números de rounds que serão executados."
+    )
+    parse.add_argument(
         "--ip",
         required=False,
         type=str,
@@ -277,7 +284,9 @@ if __name__ == "__main__":
         help="Client ID, os clientes devem ter IDs distintos."
     )
     args = parse.parse_args()
+
     ID = args.client_id
+    number_of_rounds = args.number_of_rounds
 
     log_level = logging.DEBUG if True else logging.INFO
     logger = utils.setup_logger(
