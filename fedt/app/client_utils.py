@@ -44,9 +44,6 @@ class Client():
 
         global_model_predictions = global_model.predict(self.X_test)
         global_metrics = self.evaluate(global_model_predictions)
-
-        print(metrics)
-        print(global_metrics)
         
         if global_metrics[settings.client.evaluate_type] < metrics[settings.client.evaluate_type]: 
             self.local_model = global_model
