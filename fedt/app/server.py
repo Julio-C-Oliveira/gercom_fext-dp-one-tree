@@ -63,7 +63,8 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         epsilon, 
         beta,
         threshold_type,
-        threshold_value
+        threshold_value,
+        threshold_multiplier
         ) -> None:
 
         super().__init__()
@@ -414,7 +415,8 @@ async def run_server(parse_args):
         epsilon=parse_args.epsilon,
         beta=parse_args.beta,
         threshold_type=parse_args.threshold_type,
-        threshold_value=parse_args.threshold_value
+        threshold_value=parse_args.threshold_value,
+        threshold_multiplier=parse_args.threshold_multiplier
     )
 
     shutdown_event = asyncio.Event()
