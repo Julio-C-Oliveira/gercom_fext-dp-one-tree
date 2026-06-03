@@ -24,6 +24,8 @@ balancing_coefficient = 0.37
 [settings.client]
 timeout = 420
 evaluate_type = "mse"
+dirichlet_alpha = 0.1
+number_of_bins_for_dirichlet = 100
 
 [settings.server]
 IP = "0.0.0.0"

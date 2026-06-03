@@ -27,6 +27,8 @@ class DifferentialPrivacyConfig(BaseModel):
 class ClientConfig(BaseModel):
     timeout: int
     evaluate_type: str
+    dirichlet_alpha: float
+    number_of_bins_for_dirichlet: int
 
 class ServerConfig(BaseModel):
     IP: str

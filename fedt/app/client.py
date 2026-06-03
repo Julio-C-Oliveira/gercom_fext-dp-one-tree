@@ -86,7 +86,11 @@ async def run():
                     raise RuntimeError(f"[Client {ID}] Timeout esperando servidor avançar do round {server_round} para {round_idx}")
 
             if dataset is None:
-                dataset = utils.load_house_client(seed=seed)
+                dataset = utils.load_house_client(
+                    seed=seed,
+                    alpha=dirichlet_alpha,
+                    bins=number_of_bins_for_dirichlet
+                )
 
             request_model = fedT_pb2.Request_Server(client_ID=ID)
             server_trees_serialised = []
@@ -263,6 +267,20 @@ if __name__ == "__main__":
         help="Números de rounds que serão executados."
     )
     parse.add_argument(
+        "-l", "--dirichlet-alpha",
+        required=False,
+        type=float,
+        default=settings.client.dirichlet_alpha,
+        help="O alpha que será utilizado para gerar a distribuição Non-IID."
+    )
+    parse.add_argument(
+        "-s", "--number-of-bins-for-dirichlet",
+        required=False,
+        type=int,
+        default=settings.client.number_of_bins_for_dirichlet,
+        help="O número de bins em que a distribuição do dataset será dividida."
+    )
+    parse.add_argument(
         "--ip",
         required=False,
         type=str,
@@ -287,6 +305,8 @@ if __name__ == "__main__":
 
     ID = args.client_id
     number_of_rounds = args.number_of_rounds
+    dirichlet_alpha = args.dirichlet_alpha
+    number_of_bins_for_dirichlet = args.number_of_bins_for_dirichlet
 
     log_level = logging.DEBUG if True else logging.INFO
     logger = utils.setup_logger(
