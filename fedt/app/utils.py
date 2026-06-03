@@ -85,14 +85,36 @@ def load_dataset():
     
     return data, label
 
-def load_house_client(seed):
+def load_house_client(seed, alpha, bins):
+    """
+    ### Função:
+    Carrega os dados de um cliente de forma Non-IID usando a Distribuição de Dirichlet.
+    ### Args:
+    - seed: Semente aleatória única do cliente.
+    - alpha: Concentração da distribuição de Dirichlet (menor = mais Non-IID).
+    """
     rng = np.random.default_rng(seed)
 
     X, y = load_dataset()
 
-    number_of_samples = int((len(X)*dataset.percentage_value_of_samples_per_client)/100)
+    number_of_samples = int((len(X) * dataset.percentage_value_of_samples_per_client) / 100)
 
-    idxs = rng.choice(X.shape[0], size=number_of_samples, replace=False)
+    # 1. Agrupa o alvo contínuo em 10 faixas (bins) de consumo iguais para simular "classes"
+    y_bins = pd.qcut(y, q=bins, labels=False, duplicates='drop')
+    num_bins = len(np.unique(y_bins))
+
+    # 2. Gera o vetor de Dirichlet para o cliente baseado no seed
+    dirichlet_vector = rng.dirichlet([alpha] * num_bins)
+
+    # 3. Calcula o peso de cada linha do dataset com base na faixa em que ela se encontra
+    row_weights = dirichlet_vector[y_bins]
+    probabilities = row_weights / row_weights.sum()
+
+    # 4. Amostra os dados final
+    idxs = rng.choice(X.shape[0], size=number_of_samples, replace=False, p=probabilities)
+    
+    # --- FIM DA ALTERAÇÃO ---
+
     X = X.iloc[idxs]
     y = y.iloc[idxs]
 
