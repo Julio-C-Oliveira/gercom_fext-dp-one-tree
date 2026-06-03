@@ -11,12 +11,12 @@ seeds = [
     3635933258, 4130305148
 ]
 tree_max_depths = []
-epsilons = [-1.0, 10.0, 7.0, 5.0, 3.0, 1.0, 0.75, 0.5]
-balancing_coefficients = []
 number_of_simulations = 30
 aggregation_strategies = ["threshold_trees"] # ["all_trees", "threshold_trees"]
 number_of_clients_for_test = 20
 start_ID_for_clients = 0
+dirichlet_alpha = 0.1
+number_of_bins_for_dirichlet = 100
 
 [[simulation.epsilon_settings]]
 epsilon = -1.0

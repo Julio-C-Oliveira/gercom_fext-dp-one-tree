@@ -18,11 +18,13 @@ class EpsilonSetting(BaseModel):
 class SimulationConfig(BaseModel):
     seeds: list[int]
     tree_max_depths: list[int]
-    epsilon_settings: list[EpsilonSetting]
     number_of_simulations: int
     aggregation_strategies: list[str]
     number_of_clients_for_test: int
     start_ID_for_clients: int
+    dirichlet_alpha: float
+    number_of_bins_for_dirichlet: int
+    epsilon_settings: list[EpsilonSetting]
 
 class Config(BaseModel):
     simulation: SimulationConfig
