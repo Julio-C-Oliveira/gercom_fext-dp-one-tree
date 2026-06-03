@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fext-dp"
-version = "0.2.0"
+version = "0.2.1"
 description = "Federated Learning for Decision Trees with Differential Privacy"
 authors = [{ name = "Julio C. Oliveira", email = "julio3.oliveir@gmail.com" }]
 requires-python = ">=3.10"
