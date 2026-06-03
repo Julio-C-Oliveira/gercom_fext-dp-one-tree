@@ -40,7 +40,9 @@ def run_clients(number_of_clients_for_test, start_ID_for_clients):
                         "python", 
                         "-m", "fedt.app.client", 
                         "--client-id", str(i + int(start_ID_for_clients)),
-                        "--number-of-rounds", str(1)
+                        "--number-of-rounds", str(1),
+                        "--dirichlet-alpha", str(simulation.dirichlet_alpha),
+                        "--number-of-bins-for-dirichlet", str(simulation.number_of_bins_for_dirichlet)
                     ]
 
                     p = subprocess.Popen(cmd)
