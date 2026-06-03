@@ -107,20 +107,46 @@ def exibir_resultados_separados(dados_agregados, metric_name="final_rmse"):
             
     print("\n")
 
+# "average_client_runtime": 482.6997468471527,
+# "aggregation_time": 0.017810344696044922,
+# "client_tree_size_mean": 1820.05,
+# "client_tree_size_std": 56.90472300257686,
+# "server_tree_size_mean": 39131.0,
+# "server_tree_size_std": 0.0,
+# "fit_time_mean": 0.01737760305404663,
+# "fit_time_std": 0.0006749482402304995,
+# "initial_rmse_mean": 124.37652909460948,
+# "initial_rmse_std": 31.357854098134393,
+# "initial_mse_mean": 16452.83600326212,
+# "initial_mse_std": 9568.3088491486,
+# "final_rmse_mean": 101.19637021397165,
+# "final_rmse_std": 5.781726100061825,
+# "final_mse_mean": 10274.133701179342,
+# "final_mse_std": 1186.1126805267909,
+# "round_time_mean": 48.327028679847714,
+# "round_time_std": 28.677252570090637,
+# "evaluate_time_mean": 0.016954207420349122,
+# "evaluate_time_std": 0.008169573927740478,
+# "inference_time_mean": 0.007035207748413086,
+# "inference_time_std": 0.004818990443024065,
+# "round_start_time_min": 1780419568.2810183,
+# "round_end_time_max": 1780419664.3700616
 
 if __name__ == "__main__":
     # Caminho que você mostrou no tree
-    caminho_base = "results/resultado_01-06"
+    caminho_base = "results"
+    metric_target = "final_rmse"
+    target_name = "clients"
     
     # 1. Carrega os dados na memória passando a métrica desejada
     dados_processados = carregar_dados_simulacao(
         base_path=caminho_base, 
-        target_metric="initial_mse", # Altere aqui para a métrica real que quer analisar
-        user_type="clients"
+        target_metric=metric_target, # Altere aqui para a métrica real que quer analisar
+        user_type=target_name
     )
     
     # 2. Exibe os resultados separados conforme solicitado
     if dados_processados:
-        exibir_resultados_separados(dados_processados, metric_name="final_rmse")
+        exibir_resultados_separados(dados_processados, metric_name=metric_target)
     else:
         print("Nenhum dado foi encontrado ou a métrica especificada não existe nos JSONs.")
