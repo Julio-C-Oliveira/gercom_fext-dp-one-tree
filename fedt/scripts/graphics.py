@@ -132,11 +132,7 @@ def exibir_resultados_separados(dados_agregados, metric_name="final_rmse"):
 # "round_start_time_min": 1780419568.2810183,
 # "round_end_time_max": 1780419664.3700616
 
-if __name__ == "__main__":
-    # Caminho que você mostrou no tree
-    caminho_base = "results"
-    metric_target = "final_rmse"
-    target_name = "clients"
+def exibir_metrica(caminho_base, metric_target, target_name):
     
     # 1. Carrega os dados na memória passando a métrica desejada
     dados_processados = carregar_dados_simulacao(
@@ -150,3 +146,27 @@ if __name__ == "__main__":
         exibir_resultados_separados(dados_processados, metric_name=metric_target)
     else:
         print("Nenhum dado foi encontrado ou a métrica especificada não existe nos JSONs.")
+
+if __name__ == "__main__":
+    caminho_base = "results" # "results/IID"
+
+    exibir_metrica(
+        caminho_base=caminho_base,
+        metric_target="initial_mse",
+        target_name="clients"
+    )
+    exibir_metrica(
+        caminho_base=caminho_base,
+        metric_target="final_mse",
+        target_name="clients"
+    )
+    # exibir_metrica(
+    #     caminho_base=caminho_base,
+    #     metric_target="initial_rmse",
+    #     target_name="clients"
+    # )
+    # exibir_metrica(
+    #     caminho_base=caminho_base,
+    #     metric_target="final_rmse",
+    #     target_name="clients"
+    # )

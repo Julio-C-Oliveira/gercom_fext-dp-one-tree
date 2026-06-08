@@ -11,7 +11,7 @@ from fedt.app.utils import load_dataset
 num_clients = 10
 alpha_value = 0.1  # Altere este valor para testar o nível de Non-IID! (ex: 0.1, 0.5, 5.0)
 base_seed = 42
-bins = 100
+bins = 150
 
 all_clients_data = []
 
