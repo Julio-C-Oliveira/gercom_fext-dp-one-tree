@@ -1,64 +1,48 @@
 import os
 import json
 import numpy as np
+import matplotlib.pyplot as plt
 from collections import defaultdict
 
 def carregar_dados_simulacao(base_path, target_metric="final_rmse", user_type="clients"):
     """
-    Percorre a estrutura de diretórios, carrega os arquivos JSON e extrai as métricas.
-    Retorna um dicionário aninhado: dados[estrategia][epsilon] = [lista_de_valores]
+    Carrega os dados considerando apenas o último (ou único) round disponível.
     """
-    # Dicionário para armazenar os dados separados por estratégia e epsilon
     dados_agregados = defaultdict(lambda: defaultdict(list))
-    
-    # 1. Identifica as pastas das estratégias dentro de results/resultado_01-06/
     estrategias = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
     
     for estrategia in estrategias:
         server_path = os.path.join(base_path, estrategia, "server")
-        
         if not os.path.exists(server_path):
             continue
             
-        # Lista todos os arquivos JSON daquela estratégia
         arquivos_json = [f for f in os.listdir(server_path) if f.endswith(".json")]
         
         for arquivo in arquivos_json:
-            # Ex: all_trees_0.5_10.json -> remove o ".json"
             nome_sem_extensao = arquivo.replace(".json", "")
-            
-            # Remove o prefixo da estratégia para isolar o epsilon e a execução
-            # Ex: "all_trees_0.5_10" -> "0.5_10"
-            prefixo_len = len(estrategia) + 1 # +1 por causa do "_"
+            prefixo_len = len(estrategia) + 1 
             resto_do_nome = nome_sem_extensao[prefixo_len:]
             
-            # Divide sempre pelo último "_" para separar o epsilon do número da execução
-            # Ex: "no-diff-privacy_10" -> ["no-diff-privacy", "10"]
             partes = resto_do_nome.rsplit("_", 1)
             if len(partes) != 2:
                 continue
                 
             epsilon = partes[0]
-            
-            # 2. CARREGAMENTO DOS DADOS (Leitura explícita do JSON)
             caminho_arquivo = os.path.join(server_path, arquivo)
+            
             with open(caminho_arquivo, 'r', encoding='utf-8') as f:
                 try:
                     dados_json = json.load(f)
                 except json.JSONDecodeError:
-                    print(f"Erro ao ler o arquivo {arquivo}. Pulando...")
                     continue
             
-            # 3. Lógica para pegar o último round
             rounds = [k for k in dados_json.keys() if k.startswith("round_")]
             if not rounds:
                 continue
             
-            # Ordena numericamente ("round_1", "round_2", ..., "round_10")
             rounds.sort(key=lambda x: int(x.split("_")[1]))
-            ultimo_round = rounds[-1]
+            ultimo_round = rounds[-1] # Pega o round_0
             
-            # 4. Extração da métrica desejada e armazenamento
             if user_type == "clients":
                 clients_data = dados_json[ultimo_round].get("clients", {})
                 valores = [c_data[target_metric] for c_data in clients_data.values() if target_metric in c_data]
@@ -72,101 +56,157 @@ def carregar_dados_simulacao(base_path, target_metric="final_rmse", user_type="c
                     
     return dados_agregados
 
+def plotar_impacto_epsilon(dados_agregados, estrategia_alvo, metric_name):
+    """
+    Plota um gráfico de linha onde o Eixo X é o Epsilon e o Eixo Y é a Métrica.
+    Ordenação invertida: Do menos privado (Sem Priv.) ao mais privado (Epsilon menor).
+    """
+    if estrategia_alvo not in dados_agregados:
+        print(f"Estratégia '{estrategia_alvo}' não encontrada para gráfico de linha.")
+        return
 
-def exibir_resultados_separados(dados_agregados, metric_name="final_rmse"):
-    """
-    Exibe os dados no terminal separando primeiro por Estratégia e depois por Privacidade (Epsilon).
-    """
-    print("\n" + "="*70)
-    print(f" RESULTADOS AGREGADOS - Métrica: {metric_name}")
-    print("="*70)
+    dados_estrategia = dados_agregados[estrategia_alvo]
     
-    # Função auxiliar para ordenar os Epsilons numericamente e deixar o "no-diff-privacy" no final
     def order_epsilon(e):
         if e == "no-diff-privacy":
             return float('inf')
         return float(e)
 
-    # Itera separadamente por cada estratégia carregada
-    for estrategia, epsilons_dict in dados_agregados.items():
-        print(f"\n{'='*70}")
-        print(f" >>> ESTRATÉGIA: {estrategia.upper()}")
-        print(f"{'='*70}")
-        print(f"{'Nível de Privacidade (Epsilon)':<35} | {'Média':<12} | {'Desvio Padrão'}")
-        print("-" * 70)
-        
-        # Itera por cada nível de privacidade (epsilon)
-        for epsilon in sorted(epsilons_dict.keys(), key=order_epsilon):
-            valores_execucoes = epsilons_dict[epsilon]
-            
-            media = np.mean(valores_execucoes)
-            desvio = np.std(valores_execucoes)
-            
-            # Exibe os dados agrupados por epsilon
-            print(f"{epsilon:<35} | {media:<12.4f} | {desvio:<12.4f}")
-            
-    print("\n")
-
-# "average_client_runtime": 482.6997468471527,
-# "aggregation_time": 0.017810344696044922,
-# "client_tree_size_mean": 1820.05,
-# "client_tree_size_std": 56.90472300257686,
-# "server_tree_size_mean": 39131.0,
-# "server_tree_size_std": 0.0,
-# "fit_time_mean": 0.01737760305404663,
-# "fit_time_std": 0.0006749482402304995,
-# "initial_rmse_mean": 124.37652909460948,
-# "initial_rmse_std": 31.357854098134393,
-# "initial_mse_mean": 16452.83600326212,
-# "initial_mse_std": 9568.3088491486,
-# "final_rmse_mean": 101.19637021397165,
-# "final_rmse_std": 5.781726100061825,
-# "final_mse_mean": 10274.133701179342,
-# "final_mse_std": 1186.1126805267909,
-# "round_time_mean": 48.327028679847714,
-# "round_time_std": 28.677252570090637,
-# "evaluate_time_mean": 0.016954207420349122,
-# "evaluate_time_std": 0.008169573927740478,
-# "inference_time_mean": 0.007035207748413086,
-# "inference_time_std": 0.004818990443024065,
-# "round_start_time_min": 1780419568.2810183,
-# "round_end_time_max": 1780419664.3700616
-
-def exibir_metrica(caminho_base, metric_target, target_name):
+    # reverse=True inverte a ordem: Infinito (Sem Priv.) vem primeiro, seguido dos maiores epsilons até os menores
+    epsilons_ordenados = sorted(dados_estrategia.keys(), key=order_epsilon, reverse=True)
     
-    # 1. Carrega os dados na memória passando a métrica desejada
-    dados_processados = carregar_dados_simulacao(
-        base_path=caminho_base, 
-        target_metric=metric_target, # Altere aqui para a métrica real que quer analisar
-        user_type=target_name
-    )
+    medias = []
+    desvios = []
+    labels_x = []
+
+    for eps in epsilons_ordenados:
+        valores = dados_estrategia[eps]
+        medias.append(np.mean(valores))
+        desvios.append(np.std(valores))
+        labels_x.append("Sem Priv." if eps == "no-diff-privacy" else str(eps))
+
+    plt.figure(figsize=(9, 6))
     
-    # 2. Exibe os resultados separados conforme solicitado
-    if dados_processados:
-        exibir_resultados_separados(dados_processados, metric_name=metric_target)
-    else:
-        print("Nenhum dado foi encontrado ou a métrica especificada não existe nos JSONs.")
+    plt.errorbar(labels_x, medias, yerr=desvios, fmt='-o', color='b', 
+                 capsize=5, capthick=2, elinewidth=2, markersize=8, 
+                 label=f'Estratégia: {estrategia_alvo}')
+
+    plt.title(f"Impacto da Privacidade na Métrica {metric_name.upper()}", fontsize=14)
+    plt.xlabel("Nível de Privacidade (Epsilon)", fontsize=12)
+    plt.ylabel(metric_name, fontsize=12)
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.legend()
+    plt.tight_layout()
+    
+    plt.savefig(f"{metric_name}_linha.pdf")
+    plt.close()
+
+
+def plotar_impacto_epsilon_boxplot(dados_agregados, estrategia_alvo, metric_name):
+    """
+    Gera um gráfico Boxplot com ordenação invertida (Sem Priv. até Epsilon menor).
+    """
+    if estrategia_alvo not in dados_agregados:
+        print(f"Estratégia '{estrategia_alvo}' não encontrada para Boxplot.")
+        return
+
+    dados_estrategia = dados_agregados[estrategia_alvo]
+    
+    def order_epsilon(e):
+        if e == "no-diff-privacy":
+            return float('inf')
+        return float(e)
+
+    # reverse=True adicionado para inverter a ordenação
+    epsilons_ordenados = sorted(dados_estrategia.keys(), key=order_epsilon, reverse=True)
+    
+    dados_plot = []
+    labels_x = []
+
+    for eps in epsilons_ordenados:
+        dados_plot.append(dados_estrategia[eps])
+        labels_x.append("Sem Priv." if eps == "no-diff-privacy" else str(eps))
+
+    plt.figure(figsize=(9, 6))
+    
+    plt.boxplot(dados_plot, labels=labels_x, patch_artist=True,
+                boxprops=dict(facecolor='lightblue', color='blue'),
+                medianprops=dict(color='red', linewidth=2))
+
+    plt.title(f"Distribuição de {metric_name.upper()} por Epsilon — {estrategia_alvo.upper()}", fontsize=14)
+    plt.xlabel("Nível de Privacidade (Epsilon)", fontsize=12)
+    plt.ylabel(metric_name, fontsize=12)
+    plt.grid(True, linestyle='--', alpha=0.3, axis='y')
+    plt.tight_layout()
+    
+    plt.savefig(f"{metric_name}_boxplot.pdf")
+    plt.close()
+
+
+def plotar_impacto_epsilon_barras(dados_agregados, estrategia_alvo, metric_name):
+    """
+    Gera um gráfico de barras com ordenação invertida (Sem Priv. até Epsilon menor).
+    """
+    if estrategia_alvo not in dados_agregados:
+        print(f"Estratégia '{estrategia_alvo}' não encontrada para gráfico de barras.")
+        return
+
+    dados_estrategia = dados_agregados[estrategia_alvo]
+    
+    def order_epsilon(e):
+        if e == "no-diff-privacy":
+            return float('inf')
+        return float(e)
+
+    # reverse=True adicionado para inverter a ordenação
+    epsilons_ordenados = sorted(dados_estrategia.keys(), key=order_epsilon, reverse=True)
+    
+    medias = []
+    desvios = []
+    labels_x = []
+
+    for eps in epsilons_ordenados:
+        valores = dados_estrategia[eps]
+        medias.append(np.mean(valores))
+        desvios.append(np.std(valores))
+        labels_x.append("Sem Priv." if eps == "no-diff-privacy" else str(eps))
+
+    plt.figure(figsize=(9, 6))
+    
+    plt.bar(labels_x, medias, yerr=desvios, color='skyblue', edgecolor='navy',
+            capsize=6, alpha=0.85, label=f'Estratégia: {estrategia_alvo}')
+
+    plt.title(f"Média de {metric_name.upper()} por Epsilon — {estrategia_alvo.upper()}", fontsize=14)
+    plt.xlabel("Nível de Privacidade (Epsilon)", fontsize=12)
+    plt.ylabel(metric_name, fontsize=12)
+    plt.grid(True, linestyle='--', alpha=0.5, axis='y')
+    plt.legend()
+    plt.tight_layout()
+    
+    plt.savefig(f"{metric_name}_barras.pdf")
+    plt.close()
+
 
 if __name__ == "__main__":
-    caminho_base = "results" # "results/IID"
-
-    exibir_metrica(
-        caminho_base=caminho_base,
-        metric_target="initial_mse",
-        target_name="clients"
+    caminho_base = "results"
+    metrica_alvo = "final_mse"
+    
+    dados_processados = carregar_dados_simulacao(
+        base_path=caminho_base, 
+        target_metric=metrica_alvo,
+        user_type="clients"
     )
-    exibir_metrica(
-        caminho_base=caminho_base,
-        metric_target="final_mse",
-        target_name="clients"
-    )
-    # exibir_metrica(
-    #     caminho_base=caminho_base,
-    #     metric_target="initial_rmse",
-    #     target_name="clients"
-    # )
-    # exibir_metrica(
-    #     caminho_base=caminho_base,
-    #     metric_target="final_rmse",
-    #     target_name="clients"
-    # )
+    
+    estrategia_selecionada = "threshold_trees" # "all_trees" 
+    
+    if dados_processados:
+        # 1. Gráfico de Linhas (Invertido)
+        plotar_impacto_epsilon(dados_processados, estrategia_alvo=estrategia_selecionada, metric_name=metrica_alvo)
+        
+        # 2. Gráfico Boxplot (Invertido)
+        plotar_impacto_epsilon_boxplot(dados_processados, estrategia_alvo=estrategia_selecionada, metric_name=metrica_alvo)
+        
+        # 3. Gráfico de Barras (Invertido)
+        plotar_impacto_epsilon_barras(dados_processados, estrategia_alvo=estrategia_selecionada, metric_name=metrica_alvo)
+        
+        print("Gráficos gerados e salvos com sucesso em formato PDF (ordenação invertida)!")
