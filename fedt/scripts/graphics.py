@@ -188,15 +188,15 @@ def box_plot(target_strategy, metric_name, translation_dictionary, user_type, re
 
     plt.grid(True, linestyle='--', alpha=0.3, axis='y')
     plt.tight_layout()
-    plt.savefig(f"{metric_name}_boxplot.pdf")
+    plt.savefig(f"{target_strategy}_{metric_name}_boxplot.pdf")
     plt.close()
 
 if __name__ == "__main__":
     translation_dictionary = {
         "initial_mse" : "Local Model MSE",
-        "initial_rmse" : "Local Model RMSE",
+        "initial_rmse" : "Local Model RMSE (Wh)",
         "final_mse" : "Global Model MSE",
-        "final_rmse" : "Global Model RMSE",
+        "final_rmse" : "Global Model RMSE (Wh)",
         "no-diff-privacy" : "No Diff Priv",
         "10.0" : "10.0",
         "7.0" : "7.0",
@@ -215,19 +215,60 @@ if __name__ == "__main__":
 
     caminho_base = "results"
     remove_outliers = "extremos" # Opções: None, "moderados", "extremos", "ambos"
-    
-    estrategia_selecionada = "threshold_trees" 
-    
+        
     box_plot(
-        target_strategy=estrategia_selecionada, 
+        target_strategy="threshold_trees", 
         metric_name="initial_rmse", 
         translation_dictionary=translation_dictionary,
         user_type="clients",
         remove_outliers=remove_outliers
     )
     box_plot(
-        target_strategy=estrategia_selecionada, 
+        target_strategy="threshold_trees", 
         metric_name="final_rmse", 
+        translation_dictionary=translation_dictionary,
+        user_type="clients",
+        remove_outliers=remove_outliers
+    )
+    box_plot(
+        target_strategy="all_trees", 
+        metric_name="initial_rmse", 
+        translation_dictionary=translation_dictionary,
+        user_type="clients",
+        remove_outliers=remove_outliers
+    )
+    box_plot(
+        target_strategy="all_trees", 
+        metric_name="final_rmse", 
+        translation_dictionary=translation_dictionary,
+        user_type="clients",
+        remove_outliers=remove_outliers
+    )
+
+    box_plot(
+        target_strategy="threshold_trees", 
+        metric_name="initial_mse", 
+        translation_dictionary=translation_dictionary,
+        user_type="clients",
+        remove_outliers=remove_outliers
+    )
+    box_plot(
+        target_strategy="threshold_trees", 
+        metric_name="final_mse", 
+        translation_dictionary=translation_dictionary,
+        user_type="clients",
+        remove_outliers=remove_outliers
+    )
+    box_plot(
+        target_strategy="all_trees", 
+        metric_name="initial_mse", 
+        translation_dictionary=translation_dictionary,
+        user_type="clients",
+        remove_outliers=remove_outliers
+    )
+    box_plot(
+        target_strategy="all_trees", 
+        metric_name="final_mse", 
         translation_dictionary=translation_dictionary,
         user_type="clients",
         remove_outliers=remove_outliers
