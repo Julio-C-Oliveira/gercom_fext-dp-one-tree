@@ -1,0 +1,8 @@
+[graphics]
+fontsize = 16
+fontweight = "bold"
+ticks_fontsize = 13
+normal_figsize = [9,6]
+grid_linestyle = "--"
+grid_alpha = 0.3
+remove_outliers = "extremos"
