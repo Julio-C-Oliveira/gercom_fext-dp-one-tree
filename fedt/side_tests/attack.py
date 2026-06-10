@@ -150,8 +150,50 @@ def boxplot(result_dict, file_name, y_label):
     plt.savefig(f"{paths.graphics_path}/{file_name}")
     plt.close()
 
+def outliers_manager(remove_outliers, data_dict):
+    """
+    Remove outliers (moderados, extremos ou ambos) de um dicionário no formato {epsilon: [valores]}.
+    
+    Parâmetros:
+    - remove_outliers: 'ambos', 'extremos', 'moderados' ou False/None
+    - data_dict: Dicionário contendo as listas de métricas (MSE ou RMSE) por epsilon.
+    """
+    if not remove_outliers:
+        return data_dict
+
+    cleaned_dict = {}
+
+    for epsilon, group_values in data_dict.items():
+        if len(group_values) >= 4:
+            q1, q3 = np.percentile(group_values, [25, 75])
+            interquartile_range = q3 - q1
+
+            lim_inf_mod, lim_sup_mod = q1 - 1.5 * interquartile_range, q3 + 1.5 * interquartile_range
+            lim_inf_ext, lim_sup_ext = q1 - 3.0 * interquartile_range, q3 + 3.0 * interquartile_range
+
+            clean_data = []
+            for value in group_values:
+                is_extremo = value < lim_inf_ext or value > lim_sup_ext
+                is_moderado = (value < lim_inf_mod or value > lim_sup_mod) and not is_extremo
+                
+                if remove_outliers == 'ambos' and (is_extremo or is_moderado): 
+                    continue
+                if remove_outliers == 'extremos' and is_extremo: 
+                    continue
+                if remove_outliers == 'moderados' and is_moderado: 
+                    continue
+                
+                clean_data.append(value)
+
+            cleaned_dict[epsilon] = clean_data
+        else:
+            cleaned_dict[epsilon] = list(group_values)
+
+    return cleaned_dict
 
 if __name__ == "__main__":
+    client_data_divisor = 25 # De 1 a 100
+
     epsilon_list = [setting.epsilon for setting in simulation.epsilon_settings]
 
     result_dict_mse = {eps: [] for eps in epsilon_list}
@@ -162,7 +204,7 @@ if __name__ == "__main__":
             seed=seed, 
             alpha=settings.client.dirichlet_alpha, 
             bins=settings.client.number_of_bins_for_dirichlet,
-            percentage_value_of_samples_per_client=dataset.percentage_value_of_samples_per_client/100
+            percentage_value_of_samples_per_client=dataset.percentage_value_of_samples_per_client / client_data_divisor
         )
         X_real = X_train_raw.to_numpy()
         y_real = y_train_raw.to_numpy()
@@ -208,6 +250,11 @@ if __name__ == "__main__":
             print(f"Epsilon {str(epsilon):>5} | RMSE Y Médio: FALHA EM TODAS AS SEEDS")
             
     print("="*60)
+
+    opcao_filtragem = 'ambos' 
+    
+    result_dict_mse = outliers_manager(opcao_filtragem, result_dict_mse)
+    result_dict_rmse = outliers_manager(opcao_filtragem, result_dict_rmse)
 
     boxplot(
         result_dict_mse,
