@@ -4,6 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from collections import defaultdict
 
+from fedt.app.settings import paths
+from fedt.scripts.settings import graphics
+
 def outliers_manager(remove_outliers, aggregated_data):
     if remove_outliers:
         for strategy in aggregated_data:
@@ -109,59 +112,6 @@ def extract_data_for_plot(aggregated_data, target_strategy, metric_name):
 
     return means, deviations, labels, data_plot
 
-def line_plot(aggregated_data, target_strategy, metric_name):
-    aggregated_data = load_simulation_data(
-        base_path=caminho_base, 
-        target_metric=metrica_alvo,
-        user_type="clients",
-        remove_outliers="extremos"
-    )
-
-    data = extract_data_for_plot(aggregated_data, target_strategy, metric_name)
-
-    if not data:
-        return
-
-    means, deviations, labels, data_plot = data
-
-    plt.figure(figsize=(9, 6))
-    plt.errorbar(labels, means, yerr=deviations, fmt='-o', color='b', capsize=5, capthick=2, elinewidth=2, markersize=8, label=f'Estratégia: {target_strategy}')
-    plt.title(f"Impacto da Privacidade na Métrica {metric_name.upper()}", fontsize=14)
-    plt.xlabel("Nível de Privacidade (Epsilon)", fontsize=12)
-    plt.ylabel(metric_name, fontsize=12)
-    plt.grid(True, linestyle='--', alpha=0.7)
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(f"{metric_name}_linha.pdf")
-    plt.close()
-
-def bar_plot(target_strategy, metric_name, translation_dictionary):
-    aggregated_data = load_simulation_data(
-        base_path=caminho_base, 
-        target_metric=metrica_alvo,
-        user_type="clients",
-        remove_outliers="extremos"
-    )
-
-    data = extract_data_for_plot(aggregated_data, target_strategy, metric_name)
-
-    if not data:
-        return
-
-    means, deviations, labels, data_plot = data
-    labels = rename_epsilon(labels)
-
-    plt.figure(figsize=(9, 6))
-    plt.bar(labels, means, yerr=deviations, color='skyblue', edgecolor='navy', capsize=6, alpha=0.85, label=f'Estratégia: {target_strategy}')
-    plt.xlabel("Privacy Level (ε)", fontsize=12)
-    plt.ylabel(translation_dictionary[metric_name], fontsize=12)
-    plt.grid(True, linestyle='--', alpha=0.5, axis='y')
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(f"{metric_name}_barras.pdf")
-    plt.close()
-
-
 def box_plot(target_strategy, metric_name, translation_dictionary, user_type, remove_outliers):
     aggregated_data = load_simulation_data(
         base_path=caminho_base, 
@@ -178,17 +128,17 @@ def box_plot(target_strategy, metric_name, translation_dictionary, user_type, re
     means, deviations, labels, data_plot = data
     labels = rename_epsilon(labels, translation_dictionary)
 
-    plt.figure(figsize=(9, 6))
+    plt.figure(figsize=tuple(graphics.normal_figsize))
     plt.boxplot(data_plot, labels=labels, patch_artist=True, boxprops=dict(facecolor='lightblue', color='blue'), medianprops=dict(color='red', linewidth=2))
     
-    plt.xlabel("Privacy Level (ε)", fontsize=fontsize, fontweight=fontweight)
-    plt.ylabel(translation_dictionary[metric_name], fontsize=fontsize, fontweight=fontweight)
+    plt.xlabel("Privacy Level (ε)", fontsize=graphics.fontsize, fontweight=graphics.fontweight)
+    plt.ylabel(translation_dictionary[metric_name], fontsize=graphics.fontsize, fontweight=graphics.fontweight)
 
-    plt.tick_params(axis='both', labelsize=ticks_fontsize)
+    plt.tick_params(axis='both', labelsize=graphics.ticks_fontsize)
 
-    plt.grid(True, linestyle='--', alpha=0.3, axis='y')
+    plt.grid(True, linestyle=graphics.grid_linestyle, alpha=graphics.grid_alpha, axis='y')
     plt.tight_layout()
-    plt.savefig(f"{target_strategy}_{metric_name}_boxplot.pdf")
+    plt.savefig(f"{paths.graphics_path}/{target_strategy}_{metric_name}_boxplot.pdf")
     plt.close()
 
 if __name__ == "__main__":
@@ -209,12 +159,8 @@ if __name__ == "__main__":
         "0.1" : "0.1",
     }
 
-    fontsize = 16
-    fontweight = "bold"
-    ticks_fontsize = 13
-
-    caminho_base = "results"
-    remove_outliers = "extremos" # Opções: None, "moderados", "extremos", "ambos"
+    caminho_base = paths.results_folder
+    remove_outliers = graphics.remove_outliers
         
     box_plot(
         target_strategy="threshold_trees", 
