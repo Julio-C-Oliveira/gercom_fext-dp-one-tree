@@ -85,7 +85,7 @@ def load_dataset():
     
     return data, label
 
-def load_house_client(seed, alpha, bins):
+def load_house_client(seed, alpha, bins, percentage_value_of_samples_per_client=dataset.percentage_value_of_samples_per_client):
     """
     ### Função:
     Carrega os dados de um cliente de forma Non-IID usando a Distribuição de Dirichlet.
@@ -97,7 +97,7 @@ def load_house_client(seed, alpha, bins):
 
     X, y = load_dataset()
 
-    number_of_samples = int((len(X) * dataset.percentage_value_of_samples_per_client) / 100)
+    number_of_samples = int((len(X) * percentage_value_of_samples_per_client) / 100)
 
     # 1. Agrupa o alvo contínuo em 10 faixas (bins) de consumo iguais para simular "classes"
     y_bins = pd.qcut(y, q=bins, labels=False, duplicates='drop')
