@@ -193,9 +193,9 @@ def box_plot(target_strategy, metric_name, translation_dictionary, user_type, re
 
 if __name__ == "__main__":
     translation_dictionary = {
-        "initial_mse" : "Local Model MSE",
+        "initial_mse" : "Local Model MSE (Wh²)",
         "initial_rmse" : "Local Model RMSE (Wh)",
-        "final_mse" : "Global Model MSE",
+        "final_mse" : "Global Model MSE (Wh²)",
         "final_rmse" : "Global Model RMSE (Wh)",
         "no-diff-privacy" : "No Diff Priv",
         "10.0" : "10.0",
