@@ -43,11 +43,36 @@ pip install --no-cache-dir .
 
 # How to Run
 
+**Para rodar as simulações do FedT:**
 
+- python -m fedt.simulation.run_server -s
+- python -m fedt.simulation.run_clients -n 20 -i 0
+
+**Para rodar o Ataque:**
+
+- python -m fedt.side_tests.attack
+
+**Para rodar o Shap:**
+
+- python -m fedt.side_tests.shap
 
 # Folders
 
+## App
+No pasta app reside a lógica do aprendizado federado.
 
+## Simulation
+Na pasta simulation reside as simulações.
+
+## Service
+Na pasta service estão os arquivos relacionados à interface de comunicação entre o servidor e os clientes.
+
+No fedT.proto estão as definições de funções aceitas e dos tipos de mensagem.
+
+Os arquivos .py são compilados a partir do fedT.proto.
+
+## Side Tests
+Aqui ficam os outros testes, como o ataque de reconstrução de label e o shap.
 
 # Others
 
@@ -62,29 +87,9 @@ python -m grpc_tools.protoc \
     ./fedT.proto
 
 ## To-Do
-- [ ] Ajustar os colaterais de modificar a função rpc aggregate_trees, Client_Tree é uma mensagem única ao invés de um stream agora.
-    - [x] Ajustar os imports dos arquivos gerados pelo proto.
-    - [x] Ajustar o tratamento da mensagem do cliente no servidor.
-        - [x] Retirar a função get_number_of_trees_per_client, não é mais necessária, agora cada cliente treina somente uma árvore. Medida paliativa: trees_by_client=1.
-        - [x] Alterar o argumento request_iterator do aggregate_trees no server para request. 
-        - [x] Alterar o tratamento do request.
-    - [x] Ajustar a get_server_settings, ela vai ser responsável por passar os parâmetros de privacidade.
-    - [x] Ajustar os imports do server
-    - [x] Ajustar o Cliente
-        - [x] Imports
-        - [x] Modo de envio da árvore para o servidor. De iterator, para request único, no aggregate trees.
-        - [x] Alterar HouseClient, para Client.
-        - [x] Ajustar o get_server_settings no cliente.
-        - [x] Substituir as florestas por árvores.
-        - [x] Remover o self.trees
-        - [x] O evaluate foi substituido por choose_model, ajustar o cliente.
-        - [x] O return do choose também é diferente do evaluate.
-    - [ ] Escrever o simulation.toml
-- [ ] Adicionar reprodutibilidade na geração dos datasets para os clientes. 
-- [ ] Analisar a possibilidade de remover a inicialização de um modelo de floresta do lado do servidor.  
-
-- [ ] Remover as funções mortas
-    - [x] Retirar o gerar_funcao_logaritmica do utils, se o server não vai utilizar mais ela se tornou inútil.
+- [x] Montar o teste com shap
+- [ ] Adicionar o ataque de inferência de pertencimento (MIA).
+- [ ] Adicionar um modo de avaliar como a perda de desempenho do modelo global é mitigada em decorrência do aumento do número de árvores no modelo global.
 
 # Esquema de Commits
 - feat: Pra adição de funcionalidade.
