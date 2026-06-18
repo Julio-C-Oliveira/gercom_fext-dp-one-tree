@@ -48,9 +48,10 @@ pip install --no-cache-dir .
 - python -m fedt.simulation.run_server -s
 - python -m fedt.simulation.run_clients -n 20 -i 0
 
-**Para rodar o Ataque:**
+**Para rodar os Ataques:**
 
-- python -m fedt.side_tests.attack
+- python -m fedt.side_tests.data_reconstruction_attack
+- python -m fedt.side_tests.membership_inference_attack
 
 **Para rodar o Shap:**
 
