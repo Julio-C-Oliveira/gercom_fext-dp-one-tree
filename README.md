@@ -89,7 +89,7 @@ python -m grpc_tools.protoc \
 
 ## To-Do
 - [x] Montar o teste com shap
-- [ ] Adicionar o ataque de inferência de pertencimento (MIA).
+- [x] Adicionar o ataque de inferência de pertencimento (MIA).
 - [ ] Adicionar um modo de avaliar como a perda de desempenho do modelo global é mitigada em decorrência do aumento do número de árvores no modelo global.
 
 # Esquema de Commits
