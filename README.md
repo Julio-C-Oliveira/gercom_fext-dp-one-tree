@@ -57,6 +57,14 @@ pip install --no-cache-dir .
 
 - python -m fedt.side_tests.shap
 
+**Para rodar o teste de Ensemble:**
+
+- python -m fedt.side_tests.ensemble_analysis
+
+**Para gerar os gráficos:**
+
+- python -m fedt.scripts.graphics
+
 # Folders
 
 ## App
@@ -90,7 +98,7 @@ python -m grpc_tools.protoc \
 ## To-Do
 - [x] Montar o teste com shap
 - [x] Adicionar o ataque de inferência de pertencimento (MIA).
-- [ ] Adicionar um modo de avaliar como a perda de desempenho do modelo global é mitigada em decorrência do aumento do número de árvores no modelo global.
+- [x] Adicionar um modo de avaliar como a perda de desempenho do modelo global é mitigada em decorrência do aumento do número de árvores no modelo global.
 
 # Esquema de Commits
 - feat: Pra adição de funcionalidade.
