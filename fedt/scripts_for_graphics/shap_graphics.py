@@ -82,7 +82,7 @@ def plot_shap_analysis_graphics():
     for strategy in simulation.aggregation_strategies:
         for setting in simulation.epsilon_settings:
             logger.debug(f"Gerando gráficos SHAP para a estratégia {strategy}, eps {setting.epsilon}")
-            for seed in simulation.seeds[8]:
+            for seed in [simulation.seeds[8]]:
                 folder_rel = f"{strategy}/eps_{setting.epsilon}/seed_{seed}"
                 in_dir = input_base / folder_rel
                 out_dir = output_base / folder_rel
