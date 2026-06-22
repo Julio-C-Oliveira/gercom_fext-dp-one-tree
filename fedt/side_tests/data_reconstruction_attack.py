@@ -1,15 +1,12 @@
-from fedt.app.settings import paths, dataset, settings
-from fedt.scripts.settings import graphics
-from fedt.simulation.settings import simulation
-from fedt.app.utils import load_house_client
-
+import json
 import numpy as np
-from sklearn.tree import DecisionTreeRegressor
 import pulp
 from scipy.optimize import linear_sum_assignment
+from sklearn.tree import DecisionTreeRegressor
 
-import matplotlib.pyplot as plt
-
+from fedt.app.settings import paths, dataset, settings
+from fedt.simulation.settings import simulation
+from fedt.app.utils import load_house_client
 
 def fit_client(X, y, epsilon, seed):
     model = DecisionTreeRegressor(
@@ -112,85 +109,6 @@ def evaluate_attack_sucess_rate(X_real, y_real, X_rec, y_rec):
 
     return mse_y, rmse_y
 
-def boxplot(result_dict, file_name, y_label):
-    data_plot = []
-    labels = []
-
-    for epsilon, values in result_dict.items():
-        if len(values) > 0:
-            data_plot.append(values)
-
-            if epsilon == -1.0:
-                labels.append("No Diff Priv")
-            else:
-                labels.append(str(epsilon))
-
-    if not data_plot:
-        print("[!] Não há dados válidos para plotar o gráfico.")
-        return
-
-    plt.figure(figsize=tuple(graphics.normal_figsize))
-    
-    plt.boxplot(
-        data_plot, 
-        labels=labels, 
-        patch_artist=True, 
-        boxprops=dict(facecolor='lightblue', color='blue'), 
-        medianprops=dict(color='red', linewidth=2)
-    )
-    
-    plt.xlabel("Privacy Level (ε)", fontsize=graphics.fontsize, fontweight=graphics.fontweight)
-    plt.ylabel(y_label, fontsize=graphics.fontsize, fontweight=graphics.fontweight)
-
-    plt.tick_params(axis='both', labelsize=graphics.ticks_fontsize)
-
-    plt.grid(True, linestyle=graphics.grid_linestyle, alpha=graphics.grid_alpha, axis='y')
-    plt.tight_layout()
-    
-    plt.savefig(f"{paths.graphics_path}/{file_name}")
-    plt.close()
-
-def outliers_manager(remove_outliers, data_dict):
-    """
-    Remove outliers (moderados, extremos ou ambos) de um dicionário no formato {epsilon: [valores]}.
-    
-    Parâmetros:
-    - remove_outliers: 'ambos', 'extremos', 'moderados' ou False/None
-    - data_dict: Dicionário contendo as listas de métricas (MSE ou RMSE) por epsilon.
-    """
-    if not remove_outliers:
-        return data_dict
-
-    cleaned_dict = {}
-
-    for epsilon, group_values in data_dict.items():
-        if len(group_values) >= 4:
-            q1, q3 = np.percentile(group_values, [25, 75])
-            interquartile_range = q3 - q1
-
-            lim_inf_mod, lim_sup_mod = q1 - 1.5 * interquartile_range, q3 + 1.5 * interquartile_range
-            lim_inf_ext, lim_sup_ext = q1 - 3.0 * interquartile_range, q3 + 3.0 * interquartile_range
-
-            clean_data = []
-            for value in group_values:
-                is_extremo = value < lim_inf_ext or value > lim_sup_ext
-                is_moderado = (value < lim_inf_mod or value > lim_sup_mod) and not is_extremo
-                
-                if remove_outliers == 'ambos' and (is_extremo or is_moderado): 
-                    continue
-                if remove_outliers == 'extremos' and is_extremo: 
-                    continue
-                if remove_outliers == 'moderados' and is_moderado: 
-                    continue
-                
-                clean_data.append(value)
-
-            cleaned_dict[epsilon] = clean_data
-        else:
-            cleaned_dict[epsilon] = list(group_values)
-
-    return cleaned_dict
-
 if __name__ == "__main__":
     client_data_divisor = 25 # De 1 a 100
 
@@ -251,18 +169,16 @@ if __name__ == "__main__":
             
     print("="*60)
 
-    opcao_filtragem = 'ambos' 
-    
-    result_dict_mse = outliers_manager(opcao_filtragem, result_dict_mse)
-    result_dict_rmse = outliers_manager(opcao_filtragem, result_dict_rmse)
+    output_dir = paths.results_folder / "side_tests" / "data_reconstruction_attack"
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    boxplot(
-        result_dict_mse,
-        file_name="recovery_attack_MSE_Y.pdf",
-        y_label="Data Reconstruction Attack MSE (Wh²)"
-    )
-    boxplot(
-        result_dict_rmse,
-        file_name="recovery_attack_RMSE_Y.pdf",
-        y_label="Data Reconstruction Attack RMSE (Wh)"
-    )
+    data_to_save = {
+        "mse": result_dict_mse,
+        "rmse": result_dict_rmse
+    }
+
+    file_path = output_dir / "dra_results.json"
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(data_to_save, f, indent=4)
+
+    print(f"[+] Dados salvos com sucesso em: {file_path}")
