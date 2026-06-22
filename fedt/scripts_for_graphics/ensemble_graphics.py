@@ -19,8 +19,6 @@ def plot_ensemble_analysis_graphics():
     with open(input_file, 'r', encoding='utf-8') as f:
         global_results = json.load(f)
 
-    print(f"📊 Gerando gráficos de Degradação do Ensemble...")
-
     for scenario_key, pct_data in global_results.items():
         # Desfaz a chave composta criada na simulação
         epsilon, strategy = scenario_key.split("__")
