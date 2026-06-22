@@ -8,6 +8,9 @@ from fedt.app.settings import paths
 from fedt.scripts.settings import graphics
 from fedt.scripts_for_graphics.utils import remove_outliers_from_list
 
+import logging
+logger = logging.getLogger("GRAPHICS")
+
 def outliers_manager(remove_outliers, aggregated_data):
     if remove_outliers:
         for strategy in aggregated_data:
@@ -43,10 +46,12 @@ def load_simulation_data(base_path, target_metric, user_type, remove_outliers):
                 try:
                     json_data = json.load(f)
                 except json.JSONDecodeError:
+                    logger.critical(f"Erro ao decodificar JSON no arquivo {file_path}: {e}")
                     continue
 
             rounds = [key for key in json_data.keys() if key.startswith("round_")]
             if not rounds:
+                logger.warning(f"Nenhum 'round_' encontrado no arquivo {file_path}, ignorando.")
                 continue
 
             rounds.sort(key=lambda x: int(x.split("_")[1]))

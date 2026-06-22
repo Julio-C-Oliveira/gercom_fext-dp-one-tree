@@ -7,13 +7,16 @@ import matplotlib.pyplot as plt
 from fedt.app.settings import paths
 from fedt.scripts.settings import graphics
 
+import logging
+logger = logging.getLogger("GRAPHICS")
+
 def plot_ensemble_analysis_graphics():
     folder_name = "ensemble_analysis"
     input_file = paths.results_folder / "side_tests" / folder_name / "ensemble_results.json"
     output_dir = paths.graphics_path / folder_name
     
     if not input_file.exists():
-        print(f"[!] Arquivo de resultados do Ensemble não encontrado em: {input_file}")
+        logger.critical(f"[!] Arquivo de resultados do Ensemble não encontrado em: {input_file}")
         return
 
     with open(input_file, 'r', encoding='utf-8') as f:
@@ -22,6 +25,8 @@ def plot_ensemble_analysis_graphics():
     for scenario_key, pct_data in global_results.items():
         # Desfaz a chave composta criada na simulação
         epsilon, strategy = scenario_key.split("__")
+
+        logger.debug(f"Processando cenário: Epsilon = {epsilon}, Estratégia = {strategy}")
         
         plot_pcts = []
         plot_avg_r2 = []
@@ -72,3 +77,5 @@ def plot_ensemble_analysis_graphics():
         filename = output_dir / f"degradacao_ensemble_eps_{epsilon}_{strategy}.pdf"
         plt.savefig(filename, bbox_inches='tight')
         plt.close()
+
+        logger.info(f"Gráfico salvo: {filename.name}")

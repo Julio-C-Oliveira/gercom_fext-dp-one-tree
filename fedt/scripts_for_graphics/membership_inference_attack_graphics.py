@@ -6,6 +6,9 @@ from fedt.app.settings import paths
 from fedt.scripts.settings import graphics
 from fedt.scripts_for_graphics.utils import remove_outliers_from_list
 
+import logging
+logger = logging.getLogger("GRAPHICS")
+
 def mia_outliers_manager(remove_outliers, data_dict):
     if not remove_outliers:
         return data_dict
@@ -28,7 +31,7 @@ def mia_boxplot(result_dict, file_name, y_label):
                 labels.append(str(epsilon))
 
     if not data_plot:
-        print(f"[!] Não há dados válidos para plotar o gráfico: {file_name}")
+        logger.critical(f"[!] Não há dados válidos para plotar o gráfico: {file_name}")
         return
 
     plt.figure(figsize=tuple(graphics.normal_figsize))
@@ -56,7 +59,7 @@ def plot_membership_inference_attack_graphics():
     file_path = input_dir / "mia_results.json"
     
     if not file_path.exists():
-        print(f"[!] Arquivo de resultados MIA não encontrado em: {file_path}")
+        logger.critical(f"[!] Arquivo de resultados MIA não encontrado em: {file_path}")
         return
         
     with open(file_path, 'r', encoding='utf-8') as f:

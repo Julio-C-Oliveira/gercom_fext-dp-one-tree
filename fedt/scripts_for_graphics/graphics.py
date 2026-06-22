@@ -4,11 +4,33 @@ from fedt.scripts_for_graphics.data_reconstruction_attack_graphics import plot_d
 from fedt.scripts_for_graphics.shap_graphics import plot_shap_analysis_graphics
 from fedt.scripts_for_graphics.ensemble_graphics import plot_ensemble_analysis_graphics
 
-if __name__ == "__main__":
-    plot_simulation_graphics()
-    plot_membership_inference_attack_graphics()
-    plot_data_reconstruction_attack_graphics()
-    plot_shap_analysis_graphics()
-    plot_ensemble_analysis_graphics()
+import logging
+from fedt.app import utils
 
-    print("Gráficos gerados e salvos com sucesso!")
+if __name__ == "__main__":
+    log_level = logging.DEBUG if True else logging.INFO
+    logger = utils.setup_logger(
+        name=f"GRAPHICS",
+        log_file=f"graphics.log",
+        level=log_level
+    )
+
+    logger.info("Iniciando a geração dos gráficos.")
+
+    graphics = [
+        ("Simulação Base", plot_simulation_graphics),
+        ("MIA", plot_membership_inference_attack_graphics),
+        ("Reconstruct Attack", plot_data_reconstruction_attack_graphics),
+        ("SHAP", plot_shap_analysis_graphics),
+        ("Ensemble", plot_ensemble_analysis_graphics)
+    ]
+
+    for name, generate_function in graphics:
+        try:
+            logger.info(f"Processando gráficos de {name}...")
+            generate_function()
+            logger.info(f"Gráficos de {name} concluídos.")
+        except Exception as e:
+            logger.error(f"Falha ao gerar gráficos de {name}: {e}", exc_info=True)
+
+    logger.info("Gráficos gerados e salvos com sucesso!")
