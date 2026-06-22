@@ -63,7 +63,7 @@ pip install --no-cache-dir .
 
 **Para gerar os gráficos:**
 
-- python -m fedt.scripts.graphics
+- python -m fedt.scripts_for_graphics.graphics
 
 # Folders
 
