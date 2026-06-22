@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+import json
+import os
+from pathlib import Path
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
@@ -41,74 +43,6 @@ def extract_regression_attack_features(model, X, y_true):
     residuals = np.abs(y_true - preds)
     
     return np.column_stack([depths, n_samples, node_mse, preds, residuals])
-
-# =====================================================================
-# ETAPA EXTRA: GERENCIAMENTO DE OUTLIERS E PLOTAGEM
-# =====================================================================
-def outliers_manager(remove_outliers, data_dict):
-    if not remove_outliers:
-        return data_dict
-
-    cleaned_dict = {}
-    for epsilon, group_values in data_dict.items():
-        if len(group_values) >= 4:
-            q1, q3 = np.percentile(group_values, [25, 75])
-            interquartile_range = q3 - q1
-
-            lim_inf_mod, lim_sup_mod = q1 - 1.5 * interquartile_range, q3 + 1.5 * interquartile_range
-            lim_inf_ext, lim_sup_ext = q1 - 3.0 * interquartile_range, q3 + 3.0 * interquartile_range
-
-            clean_data = []
-            for value in group_values:
-                is_extremo = value < lim_inf_ext or value > lim_sup_ext
-                is_moderado = (value < lim_inf_mod or value > lim_sup_mod) and not is_extremo
-                
-                if remove_outliers == 'ambos' and (is_extremo or is_moderado): 
-                    continue
-                if remove_outliers == 'extremos' and is_extremo: 
-                    continue
-                if remove_outliers == 'moderados' and is_moderado: 
-                    continue
-                
-                clean_data.append(value)
-            cleaned_dict[epsilon] = clean_data
-        else:
-            cleaned_dict[epsilon] = list(group_values)
-    return cleaned_dict
-
-def boxplot(result_dict, file_name, y_label):
-    data_plot = []
-    labels = []
-
-    for epsilon, values in result_dict.items():
-        if len(values) > 0:
-            data_plot.append(values)
-            if epsilon == -1.0:
-                labels.append("No Diff Priv")
-            else:
-                labels.append(str(epsilon))
-
-    if not data_plot:
-        print("[!] Não há dados válidos para plotar o gráfico.")
-        return
-
-    plt.figure(figsize=tuple(graphics.normal_figsize))
-    plt.boxplot(
-        data_plot, 
-        labels=labels, 
-        patch_artist=True, 
-        boxprops=dict(facecolor='lightblue', color='blue'), 
-        medianprops=dict(color='red', linewidth=2)
-    )
-    
-    plt.xlabel("Privacy Level (ε)", fontsize=graphics.fontsize, fontweight=graphics.fontweight)
-    plt.ylabel(y_label, fontsize=graphics.fontsize, fontweight=graphics.fontweight)
-    plt.tick_params(axis='both', labelsize=graphics.ticks_fontsize)
-    plt.grid(True, linestyle=graphics.grid_linestyle, alpha=graphics.grid_alpha, axis='y')
-    plt.tight_layout()
-    
-    plt.savefig(f"{paths.graphics_path}/{file_name}")
-    plt.close()
 
 # =====================================================================
 # PIPELINE PRINCIPAL DE EXECUÇÃO (MÚLTIPLAS SEEDS E EPSILONS)
@@ -225,7 +159,7 @@ if __name__ == "__main__":
                 print(f"[!] Falha em Epsilon = {epsilon}, Seed = {seed}. Erro: {e}")
 
     # =====================================================================
-    # IMPRESSÃO DO RELATÓRIO FINAL E GERAÇÃO DOS GRÁFICOS
+    # IMPRESSÃO DO RELATÓRIO FINAL E SALVAMENTO DOS DADOS EM JSON
     # =====================================================================
     print_section("📊 RELATÓRIO FINAL: SUCESSO DO MIA POR NÍVEL DE PRIVACIDADE")
     
@@ -241,19 +175,17 @@ if __name__ == "__main__":
             
     print("="*60)
 
-    # Filtragem de Outliers e Salvamento dos PDFs de Boxplot
-    opcao_filtragem = 'ambos' 
-    result_dict_accuracy = outliers_manager(opcao_filtragem, result_dict_accuracy)
-    result_dict_auc = outliers_manager(opcao_filtragem, result_dict_auc)
+    output_dir = paths.results_folder / "side_tests" / "membership_inference_attack"
+        
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    boxplot(
-        result_dict_accuracy,
-        file_name="mia_attack_Accuracy.pdf",
-        y_label="MIA Attack Accuracy"
-    )
-    boxplot(
-        result_dict_auc,
-        file_name="mia_attack_AUC_ROC.pdf",
-        y_label="MIA Attack AUC-ROC"
-    )
-    print("[+] Gráficos salvos com sucesso no diretório de saídas.")
+    data_to_save = {
+        "accuracy": result_dict_accuracy,
+        "auc": result_dict_auc
+    }
+
+    file_path = output_dir / "mia_results.json"
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(data_to_save, f, indent=4)
+
+    print(f"[+] Dados salvos com sucesso em: {file_path}")
