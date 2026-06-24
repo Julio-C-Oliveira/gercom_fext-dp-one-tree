@@ -116,7 +116,7 @@ def box_plot(target_strategy, metric_name, translation_dictionary, user_type, re
     labels = rename_epsilon(labels, translation_dictionary)
 
     plt.figure(figsize=tuple(graphics.normal_figsize))
-    plt.boxplot(data_plot, labels=labels, patch_artist=True, boxprops=dict(facecolor='lightblue', color='blue'), medianprops=dict(color='red', linewidth=2))
+    plt.boxplot(data_plot, tick_labels=labels, patch_artist=True, boxprops=dict(facecolor='lightblue', color='blue'), medianprops=dict(color='red', linewidth=2))
     
     plt.xlabel("Privacy Level (ε)", fontsize=graphics.fontsize, fontweight=graphics.fontweight)
     plt.ylabel(translation_dictionary[metric_name], fontsize=graphics.fontsize, fontweight=graphics.fontweight)

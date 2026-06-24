@@ -36,7 +36,7 @@ def dra_boxplot(result_dict, file_name, y_label):
     plt.figure(figsize=tuple(graphics.normal_figsize))
     plt.boxplot(
         data_plot, 
-        labels=labels, 
+        tick_labels=labels, 
         patch_artist=True, 
         boxprops=dict(facecolor='lightblue', color='blue'), 
         medianprops=dict(color='red', linewidth=2)
