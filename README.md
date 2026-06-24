@@ -18,6 +18,8 @@ This allows for **sharing** and **adapting** the dataset for any purpose, even c
 
 # Before Run
 
+Instale o pacote coinor-cbc
+
 ### Clonar o scikit-learn modificado
 Realizar o download do scikit-learn-dp, essa é a versão do scikit-learn modificada, que foi utilizada no projeto, irei adicionar posteriormente uma descrição do que foi alterado, mas por enquanto é possível visualizar somente pelos commits. Para clonar use:
 ```
@@ -82,10 +84,6 @@ Os arquivos .py são compilados a partir do fedT.proto.
 
 ## Side Tests
 Aqui ficam os outros testes, como o ataque de reconstrução de label e o shap.
-
-# Others
-
-
 
 ## Compile the proto file
 python -m grpc_tools.protoc \
