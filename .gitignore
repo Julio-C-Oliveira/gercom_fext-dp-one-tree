@@ -22,3 +22,5 @@ logs/*/
 
 # Arquivos de rede
 *.pcap
+
+teste.py
