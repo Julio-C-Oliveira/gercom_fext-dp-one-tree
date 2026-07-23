@@ -205,7 +205,7 @@ async def run():
             del server_model, client, server_trees_serialised, server_trees_deserialised
 
             gc.collect()
-            await asyncio.sleep(15)
+            await asyncio.sleep(0.1)
 
 
 if __name__ == "__main__":

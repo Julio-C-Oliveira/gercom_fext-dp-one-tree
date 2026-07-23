@@ -30,7 +30,7 @@ def run_clients(number_of_clients_for_test, start_ID_for_clients):
                 # )
                 # tcpdump_output = net_proc.stdout.readline().strip()
 
-                time.sleep(3)
+                time.sleep(2)
                 
                 # Execução dos clientes:
                 processes = []
@@ -48,7 +48,7 @@ def run_clients(number_of_clients_for_test, start_ID_for_clients):
                     p = subprocess.Popen(cmd)
                     processes.append(p)
 
-                    time.sleep(5)
+                    time.sleep(0.2)
 
                 for p in processes:
                     p.wait()
@@ -60,7 +60,7 @@ def run_clients(number_of_clients_for_test, start_ID_for_clients):
                 # cpu_ram_proc.wait()
                 # net_proc.wait()
                 print("Clientes finalizados, pausa de 30 segundos...")
-                time.sleep(30)
+                time.sleep(1)
 
 
 if __name__ == "__main__":

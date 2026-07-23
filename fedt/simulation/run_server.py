@@ -31,7 +31,7 @@ def run_server(seeds):
 
                 # tcpdump_output = net_proc.stdout.readline().strip()
 
-                time.sleep(3)
+                # time.sleep(0.5)
 
                 # Execução do servidor:
                 server_proc = subprocess.Popen(
@@ -64,8 +64,8 @@ def run_server(seeds):
 
                 # cpu_ram_proc.wait()
                 # net_proc.wait()
-                print("Server finalizado, pausa de 10 segundos...")
-                time.sleep(10)
+                print("Server finalizado, pausa de 1 segundo...")
+                time.sleep(1.5)
 
 # TODO:
 # - Ajustar os scripts
