@@ -10,16 +10,16 @@ from fedt.app.utils import load_house_client
 
 def fit_client(X, y, epsilon, seed):
     model = DecisionTreeRegressor(
-        max_depth=3,
-        splitter="best",
+        max_depth=settings.differential_privacy.tree_max_depth,
+        splitter=settings.differential_privacy.splitter,
         random_state=seed
     )
     model.fit(
         X, y,
-        global_max_target=1200,
-        global_min_target=0,
+        global_max_target=settings.differential_privacy.global_max_target,
+        global_min_target=settings.differential_privacy.global_min_target,
         epsilon_global_budget=epsilon,
-        balancing_coefficient=0.37
+        balancing_coefficient=settings.differential_privacy.balancing_coefficient
     )
     return model
 

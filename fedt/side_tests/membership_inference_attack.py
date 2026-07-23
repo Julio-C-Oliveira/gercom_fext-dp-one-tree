@@ -101,10 +101,10 @@ if __name__ == "__main__":
                 )
                 target_model.fit(
                     X_target_train, y_target_train,
-                    global_max_target=1200,
-                    global_min_target=0,
+                    global_max_target=settings.differential_privacy.global_max_target,
+                    global_min_target=settings.differential_privacy.global_min_target,
                     epsilon_global_budget=epsilon,
-                    balancing_coefficient=0.37
+                    balancing_coefficient=settings.differential_privacy.balancing_coefficient
                 )
 
                 # 2. Treinamento do Modelo Sombra (Atacante) sob as mesmas condições do alvo
@@ -115,10 +115,10 @@ if __name__ == "__main__":
                 )
                 shadow_model.fit(
                     X_shadow_train, y_shadow_train,
-                    global_max_target=1200,
-                    global_min_target=0,
+                    global_max_target=settings.differential_privacy.global_max_target,
+                    global_min_target=settings.differential_privacy.global_min_target,
                     epsilon_global_budget=epsilon,
-                    balancing_coefficient=0.37
+                    balancing_coefficient=settings.differential_privacy.balancing_coefficient
                 )
 
                 # 3. Engenharia de Features no Ambiente Sombra (Treino do MIA)
