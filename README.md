@@ -67,6 +67,9 @@ pip install --no-cache-dir .
 
 - python -m fedt.scripts_for_graphics.graphics
 
+**Para rodar tudo exceto a simulação base:**
+- python -m fedt.side_tests.data_reconstruction_attack && python -m fedt.side_tests.membership_inference_attack && python -m fedt.side_tests.shap && python -m fedt.side_tests.ensemble_analysis && python -m fedt.scripts_for_graphics.graphics
+
 # Folders
 
 ## App
