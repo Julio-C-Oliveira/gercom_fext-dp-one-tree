@@ -408,6 +408,7 @@ Differentially Private Deep Learning for Smartphone-Based Human Activity Recogni
     - Google Schoolar.
     - CCS '22: Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security.
     - https://github.com/yuxiangw/autodp.
+    - Não é um framework de modelos com privacidade diferencial, e sim a parte dos cálculos em si.
 
 - **Accuracy, Interpretability, and Differential Privacy via Explainable Boosting:**
     - Google Schoolar.
@@ -423,6 +424,7 @@ Differentially Private Deep Learning for Smartphone-Based Human Activity Recogni
     - Google Schoolar.
     - CCS '24: Proceedings of the 2024 on ACM SIGSAC Conference on Computer and Communications Security.
     - https://github.com/kirschte/sbdt.
+    - É um modelo de GBoostTree com Privacidade Diferencial.
 
 - **:**
     - Google Schoolar.
