@@ -21,69 +21,69 @@ number_of_bins_for_dirichlet = 100
 [[simulation.epsilon_settings]]
 epsilon = -1.0
 balancing_coefficient = 0.37
-threshold_value = 10438.2203
+threshold_value = 8941.4476
 threshold_type = "mse"
 threshold_multiplier = 1.001
 
 [[simulation.epsilon_settings]]
 epsilon = 10.0
 balancing_coefficient = 0.37
-threshold_value = 35360.0958
+threshold_value = 10129.0241
 threshold_type = "mse"
 threshold_multiplier = 1.001
 
 [[simulation.epsilon_settings]]
 epsilon = 7.0
 balancing_coefficient = 0.37
-threshold_value = 53336.1329
+threshold_value = 10162.7114
 threshold_type = "mse"
 threshold_multiplier = 1.001
 
 [[simulation.epsilon_settings]]
 epsilon = 5.0
 balancing_coefficient = 0.37
-threshold_value = 67769.5789
+threshold_value = 10282.4519
 threshold_type = "mse"
 threshold_multiplier = 1.001
 
 [[simulation.epsilon_settings]]
 epsilon = 3.0
 balancing_coefficient = 0.37
-threshold_value = 71711.7893
+threshold_value = 10303.8574
 threshold_type = "mse"
 threshold_multiplier = 1.001
 
 [[simulation.epsilon_settings]]
 epsilon = 1.0
 balancing_coefficient = 0.37
-threshold_value = 127543.9178
+threshold_value = 10507.1693
 threshold_type = "mse"
 threshold_multiplier = 1.001
 
 [[simulation.epsilon_settings]]
 epsilon = 0.75
 balancing_coefficient = 0.37
-threshold_value = 118717.2530
+threshold_value = 10694.6269
 threshold_type = "mse"
 threshold_multiplier = 1.001
 
 [[simulation.epsilon_settings]]
 epsilon = 0.5
 balancing_coefficient = 0.37
-threshold_value = 153659.0970
+threshold_value = 11082.4359
 threshold_type = "mse"
 threshold_multiplier = 1.001
 
 [[simulation.epsilon_settings]]
 epsilon = 0.25
 balancing_coefficient = 0.37
-threshold_value = 240211.5663
+threshold_value = 10981.8261
 threshold_type = "mse"
 threshold_multiplier = 1.001
 
 [[simulation.epsilon_settings]]
 epsilon = 0.1
 balancing_coefficient = 0.37
-threshold_value = 286894.7067
+threshold_value = 11172.5482
 threshold_type = "mse"
 threshold_multiplier = 1.001
