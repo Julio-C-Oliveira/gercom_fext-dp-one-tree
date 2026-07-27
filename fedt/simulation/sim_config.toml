@@ -12,7 +12,7 @@ seeds = [
 ]
 tree_max_depths = []
 number_of_simulations = 30
-aggregation_strategies = ["all_trees", "threshold_trees"]
+aggregation_strategies = ["all_trees", "threshold_trees", "merge_trees"]
 number_of_clients_for_test = 20
 start_ID_for_clients = 0
 dirichlet_alpha = 0.1

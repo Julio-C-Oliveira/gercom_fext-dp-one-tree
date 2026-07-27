@@ -17,6 +17,7 @@ from fedt.service import fedT_pb2
 from fedt.service import fedT_pb2_grpc
 
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.tree import DecisionTreeRegressor
 from fedt.app.client_utils import Client
 from fedt.app.utils import get_final_seed
 
@@ -28,6 +29,48 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 executor = ThreadPoolExecutor(max_workers=None)
+
+
+def build_server_model(trees: list, seed: int, X_train=None, y_train=None):
+    """
+    Constrói o modelo do servidor a partir das árvores desserializadas.
+
+    Se apenas uma árvore foi recebida (estratégia merge_trees), ela é
+    retornada diretamente como DecisionTreeRegressor, evitando o overhead
+    de criar um ensemble desnecessário.
+
+    Caso contrário, monta e retorna um RandomForestRegressor cujos
+    estimadores são as árvores recebidas (fluxo all_trees / threshold_trees).
+
+    Parameters
+    ----------
+    trees : list of DecisionTreeRegressor
+        Árvores desserializadas vindas do servidor.
+    seed : int
+        Semente usada na inicialização do RandomForestRegressor.
+    X_train : array-like, optional
+        Dados de treino para inicializar a estrutura do RandomForestRegressor.
+    y_train : array-like, optional
+        Rótulos de treino para inicializar a estrutura do RandomForestRegressor.
+
+    Returns
+    -------
+    model : DecisionTreeRegressor | RandomForestRegressor
+    """
+    if len(trees) == 1:
+        return trees[0]  # árvore única – estratégia merge_trees
+
+    # Ensemble normal: all_trees / threshold_trees
+    rf = RandomForestRegressor(
+        n_estimators=len(trees),
+        max_depth=3,
+        warm_start=True,
+        random_state=seed
+    )
+    if X_train is not None and y_train is not None:
+        rf.fit(X_train, y_train)
+    rf.estimators_ = trees
+    return rf
 
 def send_stream_trees(serialise_trees:bytes, client_ID:int):
     async def _gen():
@@ -109,14 +152,10 @@ async def run():
             del server_trees_serialised
             gc.collect()
 
-            server_model = RandomForestRegressor(
-                n_estimators=settings.number_of_clients,
-                max_depth=3,
-                warm_start=True,
-                random_state=seed
+            server_model = build_server_model(server_trees_deserialise, seed, dataset[0], dataset[1])
+            logger.debug(
+                f"Modelo inicial: {'árvore única (merge_trees)' if isinstance(server_model, DecisionTreeRegressor) else f'ensemble com {len(server_model.estimators_)} árvore(s)'}"
             )
-            server_model.fit(dataset[0], dataset[1])
-            server_model.estimators_ = server_trees_deserialise
 
             fit_start_time = time.time()
             client = Client(
@@ -159,7 +198,10 @@ async def run():
                 utils.deserialise_several_trees,
                 server_trees_serialised
             )
-            server_model.estimators_ = server_trees_deserialised
+            server_model = build_server_model(server_trees_deserialised, seed, dataset[0], dataset[1])
+            logger.debug(
+                f"Modelo agregado: {'árvore única (merge_trees)' if isinstance(server_model, DecisionTreeRegressor) else f'ensemble com {len(server_model.estimators_)} árvore(s)'}"
+            )
 
             final_server_serialise_trees_size = utils.get_size_of_many_serialised_models(server_trees_serialised)
             logger.debug(f"Final Server Model in MB: {final_server_serialise_trees_size/(1024**2)}")

@@ -150,6 +150,14 @@ class FedT(fedT_pb2_grpc.FedTServicer):
                     received_trees, 
                     self.threshold_type, self.threshold_value, self.threshold_multiplier
                 )
+            case "merge_trees":
+                merged = Strategy.merge_trees(
+                    received_trees=received_trees,
+                    max_depth_global=settings.differential_privacy.tree_max_depth,
+                    seed=self.seed,
+                )
+                # Armazena a árvore fundida como único estimador do ensemble
+                self.global_model.estimators_ = [merged]
             case _:
                 self.global_model.estimators_ = Strategy.all_trees(received_trees)
 
@@ -474,7 +482,7 @@ if __name__ == "__main__":
         required=False,
         type=str,
         default=settings.aggregation_strategy,
-        choices=["all_trees", "threshold_trees"],
+        choices=["all_trees", "threshold_trees", "merge_trees"],
         help="A estrátegia à ser utilizada."
     )
     parse.add_argument(
