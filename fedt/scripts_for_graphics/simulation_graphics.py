@@ -8,6 +8,8 @@ from fedt.app.settings import paths
 from fedt.scripts.settings import graphics
 from fedt.scripts_for_graphics.utils import remove_outliers_from_list
 
+from fedt.simulation.settings import simulation
+
 import logging
 logger = logging.getLogger("GRAPHICS")
 
@@ -151,7 +153,7 @@ def plot_simulation_graphics():
 
     remove_outliers = graphics.remove_outliers
     
-    for strategy in ["threshold_trees", "all_trees"]:
+    for strategy in simulation.aggregation_strategies:
         for metric in ["initial_rmse", "final_rmse", "initial_mse", "final_mse"]:
             box_plot(
                 target_strategy=strategy, 

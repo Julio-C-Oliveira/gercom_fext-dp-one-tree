@@ -28,6 +28,7 @@ from concurrent.futures import ThreadPoolExecutor
 import argparse
 
 warnings.filterwarnings("ignore", category=ConstantInputWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
 
 # Configuração do log:
 log_level = logging.DEBUG if True else logging.INFO
@@ -142,24 +143,34 @@ class FedT(fedT_pb2_grpc.FedTServicer):
 
     def aggregate_strategy(self, received_trees): # Tenho que adaptar isso à troca de pearson.
         match self.aggregation_strategy:
-            case "all_trees":
-                self.global_model.estimators_ = Strategy.all_trees(received_trees)
-            case "threshold_trees": 
-                self.global_model.estimators_ = Strategy.threshold_trees(
+            case "ensemble_all_trees" | "all_trees":
+                self.global_model.estimators_ = Strategy.ensemble_all_trees(received_trees)
+            case "ensemble_threshold_trees" | "threshold_trees": 
+                self.global_model.estimators_ = Strategy.ensemble_threshold_trees(
                     self.validation_dataset, 
                     received_trees, 
                     self.threshold_type, self.threshold_value, self.threshold_multiplier
                 )
-            case "merge_trees":
-                merged = Strategy.merge_trees(
+            case "merge_all_trees" | "merge_trees":
+                merged = Strategy.merge_all_trees(
                     received_trees=received_trees,
                     max_depth_global=settings.differential_privacy.tree_max_depth,
                     seed=self.seed,
                 )
-                # Armazena a árvore fundida como único estimador do ensemble
+                self.global_model.estimators_ = [merged]
+            case "merge_threshold_trees":
+                merged = Strategy.merge_threshold_trees(
+                    validation_dataset=self.validation_dataset,
+                    received_trees=received_trees,
+                    threshold_type=self.threshold_type,
+                    threshold_value=self.threshold_value,
+                    threshold_multiplier=self.threshold_multiplier,
+                    max_depth_global=settings.differential_privacy.tree_max_depth,
+                    seed=self.seed,
+                )
                 self.global_model.estimators_ = [merged]
             case _:
-                self.global_model.estimators_ = Strategy.all_trees(received_trees)
+                self.global_model.estimators_ = Strategy.ensemble_all_trees(received_trees)
 
     async def _supervisor_task(self):
         while True:
@@ -482,7 +493,7 @@ if __name__ == "__main__":
         required=False,
         type=str,
         default=settings.aggregation_strategy,
-        choices=["all_trees", "threshold_trees", "merge_trees"],
+        choices=["ensemble_all_trees", "ensemble_threshold_trees", "merge_all_trees", "merge_threshold_trees", "all_trees", "threshold_trees", "merge_trees"],
         help="A estrátegia à ser utilizada."
     )
     parse.add_argument(

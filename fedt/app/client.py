@@ -35,12 +35,12 @@ def build_server_model(trees: list, seed: int, X_train=None, y_train=None):
     """
     Constrói o modelo do servidor a partir das árvores desserializadas.
 
-    Se apenas uma árvore foi recebida (estratégia merge_trees), ela é
-    retornada diretamente como DecisionTreeRegressor, evitando o overhead
+    Se apenas uma árvore foi recebida (estratégias merge_all_trees / merge_threshold_trees),
+    ela é retornada diretamente como DecisionTreeRegressor, evitando o overhead
     de criar um ensemble desnecessário.
 
     Caso contrário, monta e retorna um RandomForestRegressor cujos
-    estimadores são as árvores recebidas (fluxo all_trees / threshold_trees).
+    estimadores são as árvores recebidas (fluxo ensemble_all_trees / ensemble_threshold_trees).
 
     Parameters
     ----------
@@ -154,7 +154,7 @@ async def run():
 
             server_model = build_server_model(server_trees_deserialise, seed, dataset[0], dataset[1])
             logger.debug(
-                f"Modelo inicial: {'árvore única (merge_trees)' if isinstance(server_model, DecisionTreeRegressor) else f'ensemble com {len(server_model.estimators_)} árvore(s)'}"
+                f"Modelo inicial: {'árvore única (merge)' if isinstance(server_model, DecisionTreeRegressor) else f'ensemble com {len(server_model.estimators_)} árvore(s)'}"
             )
 
             fit_start_time = time.time()
@@ -200,7 +200,7 @@ async def run():
             )
             server_model = build_server_model(server_trees_deserialised, seed, dataset[0], dataset[1])
             logger.debug(
-                f"Modelo agregado: {'árvore única (merge_trees)' if isinstance(server_model, DecisionTreeRegressor) else f'ensemble com {len(server_model.estimators_)} árvore(s)'}"
+                f"Modelo agregado: {'árvore única (merge)' if isinstance(server_model, DecisionTreeRegressor) else f'ensemble com {len(server_model.estimators_)} árvore(s)'}"
             )
 
             final_server_serialise_trees_size = utils.get_size_of_many_serialised_models(server_trees_serialised)

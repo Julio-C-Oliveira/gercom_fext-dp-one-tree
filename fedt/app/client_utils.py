@@ -13,6 +13,7 @@ from scipy.stats import ConstantInputWarning
 from fedt.app.settings import settings
 
 warnings.filterwarnings("ignore", category=ConstantInputWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
 
 class Client():
 

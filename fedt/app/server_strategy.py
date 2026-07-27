@@ -7,11 +7,17 @@ from fedt.app import server_utils
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.tree import DecisionTreeRegressor
 
+import warnings
+from scipy.stats import ConstantInputWarning
+
+warnings.filterwarnings("ignore", category=ConstantInputWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
+
 logger = logging.getLogger("SERVER")
 
 class Strategy():
     @staticmethod
-    def all_trees(received_trees: list[DecisionTreeRegressor]):
+    def ensemble_all_trees(received_trees: list[DecisionTreeRegressor]):
         """
         Returns all trees sent by clients.
 
@@ -26,7 +32,7 @@ class Strategy():
         return received_trees
 
     @staticmethod
-    def threshold_trees(validation_dataset, received_trees: list[DecisionTreeRegressor], threshold_type, threshold_value, threshold_multiplier):
+    def ensemble_threshold_trees(validation_dataset, received_trees: list[DecisionTreeRegressor], threshold_type, threshold_value, threshold_multiplier):
         """
         Returns the trees that cross the threshold.
 
@@ -68,14 +74,14 @@ class Strategy():
         return selected_trees
 
     @staticmethod
-    def merge_trees(
+    def merge_all_trees(
         received_trees: list[DecisionTreeRegressor],
         max_depth_global: int,
         seed: int,
         n_amostras: int = 20000,
     ) -> DecisionTreeRegressor:
         """
-        Funde as árvores dos clientes em uma única DecisionTreeRegressor,
+        Funde todas as árvores recebidas dos clientes em uma única DecisionTreeRegressor,
         gerando dados sintéticos dentro dos limites de decisão das árvores recebidas
         e usando o ensemble como professor (Knowledge Distillation).
 
@@ -140,4 +146,63 @@ class Strategy():
         )
         arvore_global.fit(X_synth, y_synth)
 
+        logger.info(f"merge_all_trees: árvore global treinada com profundidade {max_depth_global} "
+                    f"sobre {n_amostras} amostras sintéticas.")
+
         return arvore_global
+
+    @staticmethod
+    def merge_threshold_trees(
+        validation_dataset,
+        received_trees: list[DecisionTreeRegressor],
+        threshold_type,
+        threshold_value,
+        threshold_multiplier,
+        max_depth_global: int,
+        seed: int,
+        n_amostras: int = 20000,
+    ) -> DecisionTreeRegressor:
+        """
+        Filtra as árvores recebidas dos clientes usando a lógica de threshold (desempenho
+        no dataset de validação) e funde as árvores selecionadas em uma única DecisionTreeRegressor.
+
+        Parameters
+        ----------
+        validation_dataset : tuple
+            Dataset de validação (X_validate, y_validate) do servidor.
+        received_trees : list of DecisionTreeRegressor
+            Árvores recebidas dos clientes.
+        threshold_type : str
+            Tipo de limiar ('mse', 'pearson', etc.).
+        threshold_value : float
+            Valor do limiar para filtragem.
+        threshold_multiplier : float
+            Fator de multiplicação do limiar caso nenhuma árvore passe.
+        max_depth_global : int
+            Profundidade máxima da árvore global resultante.
+        seed : int
+            Semente para reprodutibilidade.
+        n_amostras : int, optional
+            Número de amostras sintéticas. Default: 20000.
+
+        Returns
+        -------
+        arvore_global : DecisionTreeRegressor
+            Árvore única treinada por destilação sobre o ensemble das árvores filtradas.
+        """
+        selected_trees = Strategy.ensemble_threshold_trees(
+            validation_dataset=validation_dataset,
+            received_trees=received_trees,
+            threshold_type=threshold_type,
+            threshold_value=threshold_value,
+            threshold_multiplier=threshold_multiplier
+        )
+
+        logger.info(f"merge_threshold_trees: {len(selected_trees)} de {len(received_trees)} árvores selecionadas via threshold.")
+
+        return Strategy.merge_all_trees(
+            received_trees=selected_trees,
+            max_depth_global=max_depth_global,
+            seed=seed,
+            n_amostras=n_amostras
+        )
