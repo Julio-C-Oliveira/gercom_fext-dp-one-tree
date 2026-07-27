@@ -9,6 +9,7 @@ from sklearn.metrics import mean_squared_error
 from scipy.stats import pearsonr
 
 from fedt.app.settings import settings, paths, dataset
+from fedt.app.server_strategy import Strategy
 from fedt.simulation.settings import simulation
 from fedt.app.utils import load_house_client, load_dataset_for_server, load_server_side_validation_data, get_final_seed
 
@@ -28,6 +29,7 @@ def fit_local_tree(X, y, epsilon, seed):
     return model
 
 def build_global_model(strategy, epsilon_setting, base_seed, num_clients):
+    """Simula o processo do servidor para as 4 estratégias de agregação."""
     global_model = RandomForestRegressor(
         n_estimators=num_clients,
         max_depth=settings.differential_privacy.tree_max_depth,
@@ -52,31 +54,50 @@ def build_global_model(strategy, epsilon_setting, base_seed, num_clients):
         
         client_tree = fit_local_tree(X_train_raw, y_train_raw, epsilon_setting.epsilon, client_seed)
         client_trees.append(client_tree)
-        
-    if strategy == "all_trees":
-        global_model.estimators_ = client_trees
-        
-    elif strategy == "threshold_trees":
-        val_seed = get_final_seed(num_clients, base_seed)
-        X_val, y_val = load_server_side_validation_data(val_seed)
-        
-        if epsilon_setting.threshold_type == "pearson":
-            eval_function = lambda y_true, y_pred: pearsonr(y_true, y_pred)[0]
-        else:
-            eval_function = mean_squared_error
 
-        tree_scores = [eval_function(y_val, tree.predict(X_val)) for tree in client_trees]
-        
-        current_threshold = epsilon_setting.threshold_value
-        selected_trees = [client_trees[i] for i in range(num_clients) if tree_scores[i] < current_threshold]
-        
-        while not selected_trees:
-            current_threshold *= epsilon_setting.threshold_multiplier
-            selected_trees = [client_trees[i] for i in range(num_clients) if tree_scores[i] < current_threshold]
-            
-        global_model.estimators_ = selected_trees
-        global_model.n_estimators = len(selected_trees)
-        
+    val_seed = get_final_seed(num_clients, base_seed)
+    validation_dataset = load_server_side_validation_data(val_seed)
+
+    match strategy:
+        case "ensemble_all_trees":
+            global_model.estimators_ = Strategy.ensemble_all_trees(client_trees)
+            global_model.n_estimators = len(global_model.estimators_)
+
+        case "ensemble_threshold_trees":
+            global_model.estimators_ = Strategy.ensemble_threshold_trees(
+                validation_dataset=validation_dataset,
+                received_trees=client_trees,
+                threshold_type=epsilon_setting.threshold_type,
+                threshold_value=epsilon_setting.threshold_value,
+                threshold_multiplier=epsilon_setting.threshold_multiplier,
+            )
+            global_model.n_estimators = len(global_model.estimators_)
+
+        case "merge_all_trees":
+            merged = Strategy.merge_all_trees(
+                received_trees=client_trees,
+                max_depth_global=settings.differential_privacy.tree_max_depth,
+                seed=base_seed,
+            )
+            global_model.estimators_ = [merged]
+            global_model.n_estimators = 1
+
+        case "merge_threshold_trees":
+            merged = Strategy.merge_threshold_trees(
+                validation_dataset=validation_dataset,
+                received_trees=client_trees,
+                threshold_type=epsilon_setting.threshold_type,
+                threshold_value=epsilon_setting.threshold_value,
+                threshold_multiplier=epsilon_setting.threshold_multiplier,
+                max_depth_global=settings.differential_privacy.tree_max_depth,
+                seed=base_seed,
+            )
+            global_model.estimators_ = [merged]
+            global_model.n_estimators = 1
+
+        case _:
+            raise ValueError(f"Estratégia desconhecida: '{strategy}'")
+
     return global_model
 
 def export_shap_data(model, X_test, output_path):
