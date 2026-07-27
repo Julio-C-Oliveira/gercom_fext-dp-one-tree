@@ -10,9 +10,11 @@ from fedt.simulation.settings import simulation
 from fedt.app.utils import load_house_client, load_dataset_for_server, load_server_side_validation_data, get_final_seed
 
 import warnings
+from scipy.stats import ConstantInputWarning
 
 # Ignora o aviso de feature names do scikit-learn
 warnings.filterwarnings("ignore", category=ConstantInputWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
 
 def fit_local_tree(X, y, epsilon, seed):
     """Treina o modelo local com as configurações exatas de Privacidade Diferencial."""
