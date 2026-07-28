@@ -10,9 +10,9 @@ from fedt.scripts.settings import graphics
 import logging
 logger = logging.getLogger("GRAPHICS")
 
-def plot_ensemble_analysis_graphics():
+def plot_client_dropout_analysis_graphics():
     folder_name = "ensemble_analysis"
-    input_file = paths.results_folder / "side_tests" / folder_name / "ensemble_results.json"
+    input_file = paths.results_folder / "side_tests" / folder_name / "client_dropout_analysis.json"
     output_dir = paths.graphics_path / folder_name
     
     if not input_file.exists():
@@ -101,7 +101,7 @@ def plot_ensemble_analysis_graphics():
             
             plt.tight_layout()
             output_dir.mkdir(parents=True, exist_ok=True)
-            filename_ind = output_dir / f"degradacao_ensemble_eps_{epsilon}_{strategy}.pdf"
+            filename_ind = output_dir / f"client_dropout_analysis_{epsilon}_{strategy}.pdf"
             fig_ind.savefig(filename_ind, bbox_inches='tight')
             plt.close(fig_ind) # Fecha a figura individual da memória
             logger.info(f"Gráfico individual salvo: {filename_ind.name}")
@@ -136,7 +136,7 @@ def plot_ensemble_analysis_graphics():
         ax_combined.legend()
         
         fig_combined.tight_layout()
-        filename_combined = output_dir / f"degradacao_ensemble_eps_{epsilon}_ALL_STRATEGIES.pdf"
+        filename_combined = output_dir / f"client_dropout_analysis_{epsilon}_ALL_STRATEGIES.pdf"
         fig_combined.savefig(filename_combined, bbox_inches='tight')
         plt.close(fig_combined) # Fecha a figura combinada da memória
         logger.info(f"Gráfico combinado salvo: {filename_combined.name}")

@@ -164,7 +164,7 @@ if __name__ == "__main__":
     # Salvamento dos dados brutos consolidados
     output_dir = paths.results_folder / "side_tests" / "ensemble_analysis"
     output_dir.mkdir(parents=True, exist_ok=True)
-    output_file = output_dir / "ensemble_results.json"
+    output_file = output_dir / "client_dropout_analysis.json"
     
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(global_results, f, indent=4)
