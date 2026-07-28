@@ -3,7 +3,6 @@ import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import mean_squared_error, r2_score
-from scipy.stats import pearsonr
 
 from fedt.app.settings import settings, dataset, paths
 from fedt.app.server_strategy import Strategy
@@ -33,77 +32,6 @@ def fit_local_tree(X, y, epsilon, seed):
     )
     return model
 
-def build_global_model(strategy, epsilon_setting, base_seed, num_clients):
-    """Simula o processo do servidor para as 4 estratégias de agregação."""
-    global_model = RandomForestRegressor(
-        n_estimators=num_clients,
-        max_depth=settings.differential_privacy.tree_max_depth,
-        warm_start=True,
-        random_state=base_seed
-    )
-    
-    X_server, y_server = load_dataset_for_server(base_seed)
-    global_model.fit(X_server, y_server)
-    
-    client_trees = []
-    for client_id in range(num_clients):
-        client_seed = get_final_seed(client_id, base_seed)
-        
-        X_train_raw, y_train_raw, _, _ = load_house_client(
-            seed=client_seed, 
-            alpha=settings.client.dirichlet_alpha, 
-            bins=settings.client.number_of_bins_for_dirichlet,
-            percentage_value_of_samples_per_client=dataset.percentage_value_of_samples_per_client
-        )
-        
-        client_tree = fit_local_tree(X_train_raw, y_train_raw, epsilon_setting.epsilon, client_seed)
-        client_trees.append(client_tree)
-
-    val_seed = get_final_seed(num_clients, base_seed)
-    validation_dataset = load_server_side_validation_data(val_seed)
-
-    match strategy:
-        case "ensemble_all_trees":
-            global_model.estimators_ = Strategy.ensemble_all_trees(client_trees)
-            global_model.n_estimators = len(global_model.estimators_)
-
-        case "ensemble_threshold_trees":
-            global_model.estimators_ = Strategy.ensemble_threshold_trees(
-                validation_dataset=validation_dataset,
-                received_trees=client_trees,
-                threshold_type=epsilon_setting.threshold_type,
-                threshold_value=epsilon_setting.threshold_value,
-                threshold_multiplier=epsilon_setting.threshold_multiplier,
-            )
-            global_model.n_estimators = len(global_model.estimators_)
-
-        case "merge_all_trees":
-            merged = Strategy.merge_all_trees(
-                received_trees=client_trees,
-                max_depth_global=settings.differential_privacy.tree_max_depth,
-                seed=base_seed,
-            )
-            global_model.estimators_ = [merged]
-            global_model.n_estimators = 1
-
-        case "merge_threshold_trees":
-            merged = Strategy.merge_threshold_trees(
-                validation_dataset=validation_dataset,
-                received_trees=client_trees,
-                threshold_type=epsilon_setting.threshold_type,
-                threshold_value=epsilon_setting.threshold_value,
-                threshold_multiplier=epsilon_setting.threshold_multiplier,
-                max_depth_global=settings.differential_privacy.tree_max_depth,
-                seed=base_seed,
-            )
-            global_model.estimators_ = [merged]
-            global_model.n_estimators = 1
-
-        case _:
-            raise ValueError(f"Estratégia desconhecida: '{strategy}'")
-
-    return global_model
-
 if __name__ == "__main__":
     seeds = simulation.seeds
     num_clients = simulation.number_of_clients_for_test
@@ -119,7 +47,7 @@ if __name__ == "__main__":
         
         for strategy in simulation.aggregation_strategies:
             # Chave string única para representação no arquivo JSON
-            scenario_key = f"{epsilon}__{strategy}"
+            scenario_key = f"{epsilon}____{strategy}"
             
             global_results[scenario_key] = {
                 str(pct): {'r2': [], 'rmse': [], 'mse': [], 'rel_mse': []} for pct in tree_percentages
@@ -128,21 +56,93 @@ if __name__ == "__main__":
             print(f"🔄 Executando cenário: Epsilon = {epsilon} | Estratégia = {strategy}")
             
             for seed in seeds:
-                global_model = build_global_model(strategy, setting, seed, num_clients)
-                todas_as_arvores = global_model.estimators_
-                total_arvores = len(todas_as_arvores)
-                
+                # Carrega validação do servidor para a seed atual
                 val_seed = get_final_seed(num_clients, seed)
                 X_val, y_val = load_server_side_validation_data(val_seed)
+                validation_dataset = (X_val, y_val)
+                
+                # --- OTIMIZAÇÃO: Treina TODAS as árvores dos clientes apenas UMA vez por seed ---
+                client_trees = []
+                for client_id in range(num_clients):
+                    client_seed = get_final_seed(client_id, seed)
+                    
+                    X_train_raw, y_train_raw, _, _ = load_house_client(
+                        seed=client_seed, 
+                        alpha=settings.client.dirichlet_alpha, 
+                        bins=settings.client.number_of_bins_for_dirichlet,
+                        percentage_value_of_samples_per_client=dataset.percentage_value_of_samples_per_client
+                    )
+                    
+                    client_tree = fit_local_tree(X_train_raw, y_train_raw, setting.epsilon, client_seed)
+                    client_trees.append(client_tree)
+
+                # Gerador de números aleatórios amarrado à seed base para amostragem determinística
+                rng = np.random.default_rng(seed)
                 
                 baseline_mse = None
                 
                 for pct in tree_percentages:
-                    n_trees = max(1, int(total_arvores * pct))
-                    subset_trees = todas_as_arvores[:n_trees]
+                    # 1. Determina quantas árvores o servidor irá efetivamente RECEBER
+                    n_trees = max(1, int(num_clients * pct))
                     
-                    tree_predictions = np.array([tree.predict(X_val) for tree in subset_trees])
-                    y_pred_subset = np.mean(tree_predictions, axis=0)
+                    # 2. Amostra aleatoriamente esse número de clientes (sem reposição)
+                    indices_selecionados = rng.choice(num_clients, size=n_trees, replace=False)
+                    subset_received_trees = [client_trees[i] for i in indices_selecionados]
+                    
+                    # 3. Constrói o modelo global base para receber a estratégia
+                    global_model = RandomForestRegressor(
+                        n_estimators=len(subset_received_trees),
+                        max_depth=settings.differential_privacy.tree_max_depth,
+                        warm_start=True,
+                        random_state=seed
+                    )
+                    
+                    X_server, y_server = load_dataset_for_server(seed)
+                    global_model.fit(X_server, y_server) # Fit dummy necessário pelo scikit-learn
+                    
+                    # 4. Aplica a Estratégia do Servidor sobre as árvores recebidas
+                    match strategy:
+                        case "ensemble_all_trees":
+                            global_model.estimators_ = Strategy.ensemble_all_trees(subset_received_trees)
+                            global_model.n_estimators = len(global_model.estimators_)
+
+                        case "ensemble_threshold_trees":
+                            global_model.estimators_ = Strategy.ensemble_threshold_trees(
+                                validation_dataset=validation_dataset,
+                                received_trees=subset_received_trees,
+                                threshold_type=setting.threshold_type,
+                                threshold_value=setting.threshold_value,
+                                threshold_multiplier=setting.threshold_multiplier,
+                            )
+                            global_model.n_estimators = len(global_model.estimators_)
+
+                        case "merge_all_trees":
+                            merged = Strategy.merge_all_trees(
+                                received_trees=subset_received_trees,
+                                max_depth_global=settings.differential_privacy.tree_max_depth,
+                                seed=seed,
+                            )
+                            global_model.estimators_ = [merged]
+                            global_model.n_estimators = 1
+
+                        case "merge_threshold_trees":
+                            merged = Strategy.merge_threshold_trees(
+                                validation_dataset=validation_dataset,
+                                received_trees=subset_received_trees,
+                                threshold_type=setting.threshold_type,
+                                threshold_value=setting.threshold_value,
+                                threshold_multiplier=setting.threshold_multiplier,
+                                max_depth_global=settings.differential_privacy.tree_max_depth,
+                                seed=seed,
+                            )
+                            global_model.estimators_ = [merged]
+                            global_model.n_estimators = 1
+
+                        case _:
+                            raise ValueError(f"Estratégia desconhecida: '{strategy}'")
+
+                    # 5. Efetua as Predições e Calcula Métricas
+                    y_pred_subset = global_model.predict(X_val)
                     
                     mse = mean_squared_error(y_val, y_pred_subset)
                     rmse = np.sqrt(mse)
