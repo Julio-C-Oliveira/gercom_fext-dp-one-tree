@@ -36,8 +36,8 @@ def fit_local_tree(X, y, epsilon, seed):
 if __name__ == "__main__":
     seeds = simulation.seeds
     num_clients = simulation.number_of_clients_for_test
-    # tree_percentages = [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]
-    tree_percentages = [1.0, 0.75, 0.5, 0.25, 0.1]
+    tree_percentages = [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]
+    # tree_percentages = [1.0, 0.5, 0.1]
 
     global_results = {}
     
