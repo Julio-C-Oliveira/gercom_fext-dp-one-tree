@@ -25,7 +25,7 @@ def plot_client_dropout_analysis_graphics():
     # 1. Pré-processamento: Agrupar as estratégias pelo valor do Epsilon
     data_by_epsilon = {}
     for scenario_key, pct_data in global_results.items():
-        epsilon, strategy = scenario_key.split("__")
+        epsilon, strategy = scenario_key.split("____")
         if epsilon not in data_by_epsilon:
             data_by_epsilon[epsilon] = {}
         data_by_epsilon[epsilon][strategy] = pct_data
