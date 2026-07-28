@@ -162,7 +162,7 @@ if __name__ == "__main__":
                     global_results[scenario_key][pct_str]['rel_mse'].append(float(rel_mse))
 
     # Salvamento dos dados brutos consolidados
-    output_dir = paths.results_folder / "side_tests" / "ensemble_analysis"
+    output_dir = paths.results_folder / "side_tests" / "client_dropout_analysis"
     output_dir.mkdir(parents=True, exist_ok=True)
     output_file = output_dir / "client_dropout_analysis.json"
     

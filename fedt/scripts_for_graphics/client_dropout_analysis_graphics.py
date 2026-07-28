@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger("GRAPHICS")
 
 def plot_client_dropout_analysis_graphics():
-    folder_name = "ensemble_analysis"
+    folder_name = "client_dropout_analysis"
     input_file = paths.results_folder / "side_tests" / folder_name / "client_dropout_analysis.json"
     output_dir = paths.graphics_path / folder_name
     
