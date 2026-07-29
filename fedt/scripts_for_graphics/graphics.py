@@ -3,6 +3,7 @@ from fedt.scripts_for_graphics.membership_inference_attack_graphics import plot_
 from fedt.scripts_for_graphics.data_reconstruction_attack_graphics import plot_data_reconstruction_attack_graphics
 from fedt.scripts_for_graphics.shap_graphics import plot_shap_analysis_graphics
 from fedt.scripts_for_graphics.client_dropout_analysis_graphics import plot_client_dropout_analysis_graphics
+from fedt.scripts_for_graphics.explainability_eval_graphics import plot_explainability_eval_graphics
 
 import logging
 from fedt.app import utils
@@ -22,6 +23,7 @@ if __name__ == "__main__":
         ("MIA", plot_membership_inference_attack_graphics),
         ("Reconstruct Attack", plot_data_reconstruction_attack_graphics),
         ("SHAP", plot_shap_analysis_graphics),
+        ("XAI", plot_explainability_eval_graphics),
         ("Dropout", plot_client_dropout_analysis_graphics)
     ]
 
