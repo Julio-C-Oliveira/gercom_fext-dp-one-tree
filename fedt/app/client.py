@@ -88,7 +88,7 @@ async def run():
 
         dataset = None
 
-        for round_idx in range(number_of_rounds): # Gambiarra momentanea, irei adapatar para usar o cli.
+        for round_idx in range(number_of_rounds):
             round_start_time = time.time()
             logger.warning(f"Round: {round_idx}")
 
