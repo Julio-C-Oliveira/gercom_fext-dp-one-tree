@@ -121,31 +121,76 @@ def build_global_model(strategy, epsilon_setting, base_seed, num_clients):
 # ==============================================================================
 
 def compute_complexity_metrics(model):
-    """Calcula profundidade e contagem de nós do modelo (local ou global)."""
+    """Calcula métricas de complexidade estrutural do modelo (local ou global).
+
+    Para uma DecisionTree simples:
+      - num_leaves: total de folhas (regras) via model.get_n_leaves().
+      - num_internal_nodes: nós de decisão = node_count - num_leaves.
+      - max_depth: profundidade máxima = comprimento da regra mais longa,
+                   obtida via model.get_depth().
+
+    Para um ensemble (RandomForest):
+      Os valores acima são calculados por estimador e depois
+      agregados (soma para totais, média/máx para profundidade).
+    """
     if isinstance(model, DecisionTreeRegressor):
+        n_leaves = int(model.get_n_leaves())
+        n_nodes = int(model.tree_.node_count)
+        n_internal = n_nodes - n_leaves
+        depth = int(model.get_depth())
         return {
             "num_trees": 1,
-            "avg_depth": float(model.get_depth()),
-            "max_depth": int(model.get_depth()),
-            "total_nodes": int(model.tree_.node_count),
-            "avg_nodes": float(model.tree_.node_count),
+            "total_nodes": n_nodes,
+            "avg_nodes": float(n_nodes),
+            "num_leaves": n_leaves,
+            "avg_leaves": float(n_leaves),
+            "num_internal_nodes": n_internal,
+            "avg_internal_nodes": float(n_internal),
+            "avg_depth": float(depth),
+            "max_depth": depth,
         }
     elif hasattr(model, "estimators_"):
         estimators = model.estimators_
         if len(estimators) == 0:
-            return {"num_trees": 0, "avg_depth": 0.0, "max_depth": 0, "total_nodes": 0, "avg_nodes": 0.0}
-        
+            return {
+                "num_trees": 0,
+                "total_nodes": 0,
+                "avg_nodes": 0.0,
+                "num_leaves": 0,
+                "avg_leaves": 0.0,
+                "num_internal_nodes": 0,
+                "avg_internal_nodes": 0.0,
+                "avg_depth": 0.0,
+                "max_depth": 0,
+            }
+
         depths = [t.get_depth() for t in estimators]
         nodes = [t.tree_.node_count for t in estimators]
+        leaves = [t.get_n_leaves() for t in estimators]
+        internals = [n - l for n, l in zip(nodes, leaves)]
         return {
             "num_trees": len(estimators),
-            "avg_depth": float(np.mean(depths)),
-            "max_depth": int(np.max(depths)),
             "total_nodes": int(np.sum(nodes)),
             "avg_nodes": float(np.mean(nodes)),
+            "num_leaves": int(np.sum(leaves)),
+            "avg_leaves": float(np.mean(leaves)),
+            "num_internal_nodes": int(np.sum(internals)),
+            "avg_internal_nodes": float(np.mean(internals)),
+            "avg_depth": float(np.mean(depths)),
+            "max_depth": int(np.max(depths)),
         }
     else:
-        return {"num_trees": 0, "avg_depth": 0.0, "max_depth": 0, "total_nodes": 0, "avg_nodes": 0.0}
+        return {
+            "num_trees": 0,
+            "total_nodes": 0,
+            "avg_nodes": 0.0,
+            "num_leaves": 0,
+            "avg_leaves": 0.0,
+            "num_internal_nodes": 0,
+            "avg_internal_nodes": 0.0,
+            "avg_depth": 0.0,
+            "max_depth": 0,
+        }
 
 
 def compute_sparsity_metrics(shap_matrix):

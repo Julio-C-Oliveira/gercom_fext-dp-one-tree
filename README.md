@@ -59,6 +59,10 @@ pip install --no-cache-dir .
 
 - python -m fedt.side_tests.shap
 
+**Para rodar outras métricas de explicabilidade:**
+
+- python -m fedt.side_tests.explainability_eval
+
 **Para rodar o teste de Ensemble:**
 
 - python -m fedt.side_tests.client_dropout_analysis
@@ -68,7 +72,7 @@ pip install --no-cache-dir .
 - python -m fedt.scripts_for_graphics.graphics
 
 **Para rodar tudo exceto a simulação base:**
-- python -m fedt.side_tests.data_reconstruction_attack && python -m fedt.side_tests.membership_inference_attack && python -m fedt.side_tests.shap && python -m fedt.side_tests.client_dropout_analysis && python -m fedt.scripts_for_graphics.graphics
+- python -m fedt.side_tests.data_reconstruction_attack && python -m fedt.side_tests.membership_inference_attack && python -m fedt.side_tests.shap && python -m fedt.side_tests.explainability_eval && python -m fedt.side_tests.client_dropout_analysis && python -m fedt.scripts_for_graphics.graphics
 
 **Pra limpar os resultados antes de rodar novamente:**
 - rm -rf results/* 

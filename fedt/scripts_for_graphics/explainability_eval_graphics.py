@@ -230,6 +230,50 @@ def render_unified_line_plot(x_indices, series_dict, x_labels, title, ylabel, ou
     logger.info(f"Gráfico unificado salvo: {output_path.name}")
 
 
+def log_structural_complexity(records, eps_list, global_strategies):
+    """Exibe no terminal via logger.info o resumo da complexidade estrutural das árvores a partir dos dados do JSON."""
+    logger.info("============================================================")
+    logger.info("📐 COMPLEXIDADE ESTRUTURAL DOS MODELOS (RESUMO DADOS JSON)")
+    logger.info("============================================================")
+
+    # 1. Modelo Local (calculado no nível do cliente)
+    for eps in eps_list:
+        eps_str = "No Diff Priv." if eps == -1.0 else f"ε = {eps}"
+        matching_recs = [
+            rec for rec in records
+            if rec["model_level"] == "local" and rec["epsilon"] == eps
+        ]
+        if matching_recs:
+            avg_leaves = float(np.median([r["num_leaves"] for r in matching_recs if "num_leaves" in r]))
+            avg_internal = float(np.median([r["num_internal_nodes"] for r in matching_recs if "num_internal_nodes" in r]))
+            avg_total = float(np.median([r["total_nodes"] for r in matching_recs if "total_nodes" in r]))
+            avg_depth = float(np.median([r["max_depth"] for r in matching_recs if "max_depth" in r]))
+            logger.info(
+                f"[LOCAL]  | {eps_str:<15} | Folhas (Regras): {avg_leaves:>6.1f} | "
+                f"Nós Internos: {avg_internal:>6.1f} | Total Nós: {avg_total:>6.1f} | Prof. Máx: {avg_depth:>4.1f}"
+            )
+
+    # 2. Modelos Globais por Estratégia
+    for strat in global_strategies:
+        logger.info(f"--- Estratégia Global: {strat} ---")
+        for eps in eps_list:
+            eps_str = "No Diff Priv." if eps == -1.0 else f"ε = {eps}"
+            matching_recs = [
+                rec for rec in records
+                if rec["model_level"] == "global" and rec["strategy"] == strat and rec["epsilon"] == eps
+            ]
+            if matching_recs:
+                avg_leaves = float(np.median([r["num_leaves"] for r in matching_recs if "num_leaves" in r]))
+                avg_internal = float(np.median([r["num_internal_nodes"] for r in matching_recs if "num_internal_nodes" in r]))
+                avg_total = float(np.median([r["total_nodes"] for r in matching_recs if "total_nodes" in r]))
+                avg_depth = float(np.median([r["max_depth"] for r in matching_recs if "max_depth" in r]))
+                avg_trees = float(np.median([r["num_trees"] for r in matching_recs if "num_trees" in r]))
+                logger.info(
+                    f"[GLOBAL] | {eps_str:<15} | Árvores: {avg_trees:>4.0f} | Folhas (Regras): {avg_leaves:>6.1f} | "
+                    f"Nós Internos: {avg_internal:>6.1f} | Total Nós: {avg_total:>6.1f} | Prof. Máx: {avg_depth:>4.1f}"
+                )
+
+
 def plot_explainability_eval_graphics():
     input_file = paths.results_folder / "side_tests" / "explainability_eval" / "explainability_summary.json"
     output_dir = paths.graphics_path / "explainability_eval"
@@ -248,6 +292,9 @@ def plot_explainability_eval_graphics():
         "merge_threshold_trees"
     ]
 
+    # Exibe no terminal a complexidade estrutural das árvores
+    log_structural_complexity(records, eps_list, global_strategies)
+
     # Lista de métricas unificadas (Local + 4 Globais na mesma figura)
     unified_metrics = [
         "hoyer_sparsity",
@@ -257,7 +304,7 @@ def plot_explainability_eval_graphics():
         "jaccard_top3",
         "jaccard_top5",
         "cosine_distance",
-        "local_sensitivity"
+        "local_sensitivity",
     ]
 
     # --------------------------------------------------------------------------
