@@ -24,7 +24,7 @@ server_linestyle = "--"
 
 [graphics.boxplot]
 box_facecolor = "#BDD7EE"
-box_color = "#1c66aa"
+box_color = "#0084ff"
 median_color = "#ff0000"
 median_linewidth = 2
 
