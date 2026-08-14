@@ -5,7 +5,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from fedt.app.settings import paths
-from fedt.scripts.settings import graphics
+from fedt.scripts_for_graphics.settings import graphics
 
 import logging
 logger = logging.getLogger("GRAPHICS")
@@ -30,15 +30,11 @@ def plot_client_dropout_analysis_graphics():
             data_by_epsilon[epsilon] = {}
         data_by_epsilon[epsilon][strategy] = pct_data
 
-    # Paleta de cores para diferenciar as estratégias no gráfico combinado
-    strategy_colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
-
     for epsilon, strategies in data_by_epsilon.items():
         logger.info(f"Gerando gráficos para Epsilon = {epsilon}")
         
         # Cria a figura para o gráfico combinado de todas as estratégias
-        fig_combined, ax_combined = plt.subplots(figsize=(10, 6))
-        color_idx = 0
+        fig_combined, ax_combined = plt.subplots(figsize=tuple(graphics.wide_figsize))
         
         for strategy, pct_data in strategies.items():
             logger.debug(f"Processando estratégia individual: {strategy}")
@@ -76,23 +72,28 @@ def plot_client_dropout_analysis_graphics():
             upper_error = plot_q3_rel_mse - plot_median_rel_mse
             yerr_asymmetric = [lower_error, upper_error]
 
-            # --- 2. Renderização do Gráfico Individual (Mantendo o comportamento anterior) ---
-            fig_ind, ax_ind = plt.subplots(figsize=(8, 5))
+            # Obtém a cor da estratégia diretamente da configuração
+            strategy_cfg = graphics.strategies.get(strategy)
+            s_color = strategy_cfg.color if strategy_cfg else '#333333'
+            s_label = strategy_cfg.label if strategy_cfg else strategy.replace('_', ' ').title()
+
+            # --- 2. Renderização do Gráfico Individual ---
+            fig_ind, ax_ind = plt.subplots(figsize=tuple(graphics.normal_figsize))
             ax_ind.errorbar(
                 plot_pcts, 
                 plot_median_rel_mse, 
                 yerr=yerr_asymmetric,
                 marker='s', 
-                linestyle='-', 
-                color='#d62728', 
-                linewidth=2, 
-                capsize=5,
-                capthick=1.5,
-                label='Median Relative MSE Var.'
+                linestyle=graphics.client.linestyle,
+                color=s_color,
+                linewidth=graphics.lines.linewidth,
+                capsize=graphics.lines.capsize,
+                capthick=graphics.lines.capthick,
+                label=graphics.dropout.label_median
             )
             
-            ax_ind.set_xlabel("% of Trees Preserved in the Global Model", fontsize=graphics.fontsize - 2, fontweight=graphics.fontweight)
-            ax_ind.set_ylabel("Error Increase Relative to Baseline %", fontsize=graphics.fontsize - 2, fontweight=graphics.fontweight)
+            ax_ind.set_xlabel(graphics.labels.x.trees_preserved, fontsize=graphics.label_fontsize, fontweight=graphics.fontweight)
+            ax_ind.set_ylabel(graphics.labels.y.dropout_relative_mse, fontsize=graphics.label_fontsize, fontweight=graphics.fontweight)
             ax_ind.set_xticks(plot_pcts)
             ax_ind.set_xlim(105, 5)
             ax_ind.tick_params(axis='both', labelsize=graphics.ticks_fontsize)
@@ -103,32 +104,26 @@ def plot_client_dropout_analysis_graphics():
             output_dir.mkdir(parents=True, exist_ok=True)
             filename_ind = output_dir / f"client_dropout_analysis_{epsilon}_{strategy}.pdf"
             fig_ind.savefig(filename_ind, bbox_inches='tight')
-            plt.close(fig_ind) # Fecha a figura individual da memória
+            plt.close(fig_ind)
             logger.info(f"Gráfico individual salvo: {filename_ind.name}")
 
             # --- 3. Adicionando os mesmos dados no Gráfico Combinado ---
-            current_color = strategy_colors[color_idx % len(strategy_colors)]
-            
-            # Limpa o nome da estratégia para a legenda ficar mais bonita (ex: ensemble_all_trees -> Ensemble All Trees)
-            label_name = strategy.replace('_', ' ').title() 
-            
             ax_combined.errorbar(
                 plot_pcts, 
                 plot_median_rel_mse, 
                 yerr=yerr_asymmetric,
                 marker='s', 
-                linestyle='-', 
-                color=current_color, 
-                linewidth=2, 
-                capsize=5,
-                capthick=1.5,
-                label=label_name
+                linestyle=graphics.client.linestyle,
+                color=s_color,
+                linewidth=graphics.lines.linewidth,
+                capsize=graphics.lines.capsize,
+                capthick=graphics.lines.capthick,
+                label=s_label
             )
-            color_idx += 1
 
         # --- 4. Finalizando e Salvando o Gráfico Combinado do Epsilon ---
-        ax_combined.set_xlabel("% of Trees Preserved in the Global Model", fontsize=graphics.fontsize - 2, fontweight=graphics.fontweight)
-        ax_combined.set_ylabel("Error Increase Relative to Baseline %", fontsize=graphics.fontsize - 2, fontweight=graphics.fontweight)
+        ax_combined.set_xlabel(graphics.labels.x.trees_preserved, fontsize=graphics.label_fontsize, fontweight=graphics.fontweight)
+        ax_combined.set_ylabel(graphics.labels.y.dropout_relative_mse, fontsize=graphics.label_fontsize, fontweight=graphics.fontweight)
         ax_combined.set_xticks(plot_pcts)
         ax_combined.set_xlim(105, 5)
         ax_combined.tick_params(axis='both', labelsize=graphics.ticks_fontsize)
@@ -138,5 +133,5 @@ def plot_client_dropout_analysis_graphics():
         fig_combined.tight_layout()
         filename_combined = output_dir / f"client_dropout_analysis_{epsilon}_ALL_STRATEGIES.pdf"
         fig_combined.savefig(filename_combined, bbox_inches='tight')
-        plt.close(fig_combined) # Fecha a figura combinada da memória
+        plt.close(fig_combined)
         logger.info(f"Gráfico combinado salvo: {filename_combined.name}")

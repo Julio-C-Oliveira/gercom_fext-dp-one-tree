@@ -1,0 +1,107 @@
+[graphics]
+# Dimensões das Figuras [largura, altura]
+wide_figsize = [10, 6]
+normal_figsize = [8, 5]
+
+# Fontes e Tamanhos
+label_fontsize = 16
+ticks_fontsize = 14
+legend_fontsize = 13
+fontweight = "bold"
+
+# Estilo da Grade (Grid)
+grid_linestyle = "--"
+grid_alpha = 0.3
+
+# Pós-processamento de Dados
+remove_outliers = "extremos"
+
+[graphics.lines]
+linewidth = 2
+capsize = 5
+capthick = 1.5
+server_linestyle = "--"
+
+[graphics.boxplot]
+box_facecolor = "#BDD7EE"
+box_color = "#1c66aa"
+median_color = "#ff0000"
+median_linewidth = 2
+
+[graphics.client]
+color = "#1C1C1C"
+marker = "o"
+linestyle = "-"
+label = "Local Model"
+
+[graphics.server]
+label = "Server"
+label_combined_format = "{strategy}"
+
+[graphics.dropout]
+label_median = "Median Relative MSE Var."
+
+[graphics.sbdt]
+color = "#6A1B9A"
+marker = "P"
+linestyle = "-"
+label = "SBDT"
+
+# Configuração Direta por Estratégia (Paleta Acadêmica de Alto Contraste - Okabe-Ito / ColorBrewer)
+[graphics.strategies.ensemble_all_trees]
+color = "#0072B2"
+marker = "o"
+label = "Ensemble All Trees"
+
+[graphics.strategies.ensemble_threshold_trees]
+color = "#D55E00"
+marker = "s"
+label = "Ensemble Threshold Trees"
+
+[graphics.strategies.merge_all_trees]
+color = "#009E73"
+marker = "^"
+label = "Merge All Trees"
+
+[graphics.strategies.merge_threshold_trees]
+color = "#C0392B"
+marker = "D"
+label = "Merge Threshold Trees"
+
+[graphics.labels.x]
+privacy_level = "Privacy Level (ε)"
+trees_preserved = "% of Trees Preserved in the Global Model"
+
+[graphics.labels.epsilon]
+no_diff_privacy = "No Diff"
+
+[graphics.labels.y]
+# Simulação Base
+initial_mse = "Local Model MSE (Wh²)"
+initial_rmse = "Local Model RMSE (Wh)"
+final_mse = "Global Model MSE (Wh²)"
+final_rmse = "Global Model RMSE (Wh)"
+cross_validation_mse = "Cross Validation MSE (Wh²)"
+cross_validation_rmse = "Cross Validation RMSE (Wh)"
+
+# Client Dropout
+dropout_relative_mse = "Error Increase Relative to Baseline %"
+
+# Ataques
+dra_mse = "Data Reconstruction Attack MSE (Wh²)"
+dra_rmse = "Data Reconstruction Attack RMSE (Wh)"
+mia_accuracy = "MIA Attack Accuracy"
+mia_auc = "MIA Attack AUC-ROC"
+
+# Explicabilidade (XAI)
+hoyer_sparsity = "Hoyer Sparsity Index"
+gini_index = "Gini Index"
+mae_fidelity = "MAE"
+spearman_rank_corr = "Spearman Correlation (ρ)"
+jaccard_top3 = "Jaccard Similarity"
+jaccard_top5 = "Jaccard Similarity"
+cosine_distance = "Cosine Distance"
+local_sensitivity = "Sensitivity Ratio"
+gap_cosine_distance = "Cosine Distance (Local vs. Global)"
+gap_jaccard_top3 = "Top-3 Jaccard Similarity (Local vs. Global)"
+gap_spearman_rank_corr = "Spearman Correlation (Local vs. Global)"

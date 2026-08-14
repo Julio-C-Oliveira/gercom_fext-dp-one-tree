@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from fedt.app.settings import paths
-from fedt.scripts.settings import graphics
+from fedt.scripts_for_graphics.settings import graphics
 from fedt.scripts_for_graphics.utils import remove_outliers_from_list
 
 import logging
@@ -26,7 +26,7 @@ def mia_boxplot(result_dict, file_name, y_label):
         if len(values) > 0:
             data_plot.append(values)
             if str(epsilon) == "-1.0" or epsilon == -1.0:
-                labels.append("No Diff Priv")
+                labels.append(graphics.labels.epsilon.no_diff_privacy)
             else:
                 labels.append(str(epsilon))
 
@@ -39,12 +39,12 @@ def mia_boxplot(result_dict, file_name, y_label):
         data_plot, 
         tick_labels=labels, 
         patch_artist=True, 
-        boxprops=dict(facecolor='lightblue', color='blue'), 
-        medianprops=dict(color='red', linewidth=2)
+        boxprops=dict(facecolor=graphics.boxplot.box_facecolor, color=graphics.boxplot.box_color), 
+        medianprops=dict(color=graphics.boxplot.median_color, linewidth=graphics.boxplot.median_linewidth)
     )
     
-    plt.xlabel("Privacy Level (ε)", fontsize=graphics.fontsize, fontweight=graphics.fontweight)
-    plt.ylabel(y_label, fontsize=graphics.fontsize, fontweight=graphics.fontweight)
+    plt.xlabel(graphics.labels.x.privacy_level, fontsize=graphics.label_fontsize, fontweight=graphics.fontweight)
+    plt.ylabel(y_label, fontsize=graphics.label_fontsize, fontweight=graphics.fontweight)
     plt.tick_params(axis='both', labelsize=graphics.ticks_fontsize)
     plt.grid(True, linestyle=graphics.grid_linestyle, alpha=graphics.grid_alpha, axis='y')
     plt.tight_layout()
@@ -78,10 +78,10 @@ def plot_membership_inference_attack_graphics():
     mia_boxplot(
         result_dict_accuracy,
         file_name=f"{output_dir}/mia_attack_Accuracy.pdf",
-        y_label="MIA Attack Accuracy"
+        y_label=graphics.labels.y.mia_accuracy
     )
     mia_boxplot(
         result_dict_auc,
         file_name=f"{output_dir}/mia_attack_AUC_ROC.pdf",
-        y_label="MIA Attack AUC-ROC"
+        y_label=graphics.labels.y.mia_auc
     )

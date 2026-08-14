@@ -7,6 +7,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from fedt.app.settings import paths
+from fedt.scripts_for_graphics.settings import graphics  # noqa: F401 (importado para consistência)
 from fedt.simulation.settings import simulation
 
 import logging

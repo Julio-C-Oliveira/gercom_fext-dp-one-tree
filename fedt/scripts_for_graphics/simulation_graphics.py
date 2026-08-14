@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from collections import defaultdict
 
 from fedt.app.settings import paths
-from fedt.scripts.settings import graphics
+from fedt.scripts_for_graphics.settings import graphics
 from fedt.scripts_for_graphics.utils import remove_outliers_from_list
 
 from fedt.simulation.settings import simulation
@@ -85,7 +85,7 @@ def sort_epsilons(e):
     return float(e)
 
 def rename_epsilon(epsilons, translation_dictionary):
-    return [translation_dictionary[i] for i in epsilons]
+    return [translation_dictionary.get(i, i) for i in epsilons]
 
 def extract_data_for_plot(aggregated_data, target_strategy, metric_name):
     if target_strategy not in aggregated_data:
@@ -108,7 +108,7 @@ def extract_data_for_plot(aggregated_data, target_strategy, metric_name):
 
     return means, deviations, labels, data_plot
 
-def box_plot(target_strategy, metric_name, translation_dictionary, user_type, remove_outliers):
+def box_plot(target_strategy, metric_name, user_type, remove_outliers):
     caminho_base = paths.results_folder
     aggregated_data = load_simulation_data(
         base_path=caminho_base,
@@ -123,13 +123,20 @@ def box_plot(target_strategy, metric_name, translation_dictionary, user_type, re
         return
 
     means, deviations, labels, data_plot = data
-    labels = rename_epsilon(labels, translation_dictionary)
+    epsilon_translations = {"no-diff-privacy": graphics.labels.epsilon.no_diff_privacy}
+    labels = rename_epsilon(labels, epsilon_translations)
 
     plt.figure(figsize=tuple(graphics.normal_figsize))
-    plt.boxplot(data_plot, tick_labels=labels, patch_artist=True, boxprops=dict(facecolor='lightblue', color='blue'), medianprops=dict(color='red', linewidth=2))
+    plt.boxplot(
+        data_plot,
+        tick_labels=labels,
+        patch_artist=True,
+        boxprops=dict(facecolor=graphics.boxplot.box_facecolor, color=graphics.boxplot.box_color),
+        medianprops=dict(color=graphics.boxplot.median_color, linewidth=graphics.boxplot.median_linewidth)
+    )
     
-    plt.xlabel("Privacy Level (ε)", fontsize=graphics.fontsize, fontweight=graphics.fontweight)
-    plt.ylabel(translation_dictionary[metric_name], fontsize=graphics.fontsize, fontweight=graphics.fontweight)
+    plt.xlabel(graphics.labels.x.privacy_level, fontsize=graphics.label_fontsize, fontweight=graphics.fontweight)
+    plt.ylabel(getattr(graphics.labels.y, metric_name, metric_name), fontsize=graphics.label_fontsize, fontweight=graphics.fontweight)
 
     plt.tick_params(axis='both', labelsize=graphics.ticks_fontsize)
 
@@ -141,7 +148,7 @@ def box_plot(target_strategy, metric_name, translation_dictionary, user_type, re
     plt.savefig(f"{output_dir}/{target_strategy}_{metric_name}_boxplot.pdf")
     plt.close()
 
-def line_plot(target_strategy, metric_name, translation_dictionary, remove_outliers):
+def line_plot(target_strategy, metric_name, remove_outliers):
     caminho_base = paths.results_folder
     clients_aggregated = load_simulation_data(
         base_path=caminho_base,
@@ -166,30 +173,44 @@ def line_plot(target_strategy, metric_name, translation_dictionary, remove_outli
     c_means, c_deviations, c_labels, _ = clients_data
     s_means, s_deviations, s_labels, _ = server_data
 
-    labels = rename_epsilon(c_labels, translation_dictionary)
+    epsilon_translations = {"no-diff-privacy": graphics.labels.epsilon.no_diff_privacy}
+    labels = rename_epsilon(c_labels, epsilon_translations)
 
     plt.figure(figsize=tuple(graphics.normal_figsize))
     x = np.arange(len(labels))
 
     plt.errorbar(
         x, c_means, yerr=c_deviations,
-        marker='o', linestyle='-', color='blue', linewidth=2, capsize=4,
-        label='Clientes'
+        marker=graphics.client.marker,
+        linestyle=graphics.client.linestyle,
+        color=graphics.client.color,
+        linewidth=graphics.lines.linewidth,
+        capsize=graphics.lines.capsize,
+        label=graphics.client.label
     )
+
+    strategy_cfg = graphics.strategies.get(target_strategy)
+    s_color = strategy_cfg.color if strategy_cfg else '#ff7f0e'
+    s_marker = strategy_cfg.marker if strategy_cfg else 's'
+
     plt.errorbar(
         x, s_means, yerr=s_deviations,
-        marker='s', linestyle='--', color='red', linewidth=2, capsize=4,
-        label='Servidor'
+        marker=s_marker,
+        linestyle=graphics.lines.server_linestyle,
+        color=s_color,
+        linewidth=graphics.lines.linewidth,
+        capsize=graphics.lines.capsize,
+        label=graphics.server.label
     )
 
     plt.xticks(x, labels)
-    plt.xlabel("Privacy Level (ε)", fontsize=graphics.fontsize, fontweight=graphics.fontweight)
+    plt.xlabel(graphics.labels.x.privacy_level, fontsize=graphics.label_fontsize, fontweight=graphics.fontweight)
     
-    ylabel_text = translation_dictionary.get(metric_name, metric_name)
-    plt.ylabel(ylabel_text, fontsize=graphics.fontsize, fontweight=graphics.fontweight)
+    ylabel_text = getattr(graphics.labels.y, metric_name, metric_name)
+    plt.ylabel(ylabel_text, fontsize=graphics.label_fontsize, fontweight=graphics.fontweight)
 
     plt.tick_params(axis='both', labelsize=graphics.ticks_fontsize)
-    plt.legend(fontsize=graphics.fontsize - 2)
+    plt.legend(fontsize=graphics.legend_fontsize)
 
     output_dir = paths.graphics_path / "simulation"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -199,7 +220,7 @@ def line_plot(target_strategy, metric_name, translation_dictionary, remove_outli
     plt.savefig(f"{output_dir}/{target_strategy}_{metric_name}_lineplot.pdf")
     plt.close()
 
-def combined_line_plot(metric_name, translation_dictionary, remove_outliers):
+def combined_line_plot(metric_name, remove_outliers):
     caminho_base = paths.results_folder
     
     clients_aggregated = load_simulation_data(
@@ -228,7 +249,8 @@ def combined_line_plot(metric_name, translation_dictionary, remove_outliers):
         return
 
     c_means, c_deviations, c_labels, _ = clients_data
-    labels = rename_epsilon(c_labels, translation_dictionary)
+    epsilon_translations = {"no-diff-privacy": graphics.labels.epsilon.no_diff_privacy}
+    labels = rename_epsilon(c_labels, epsilon_translations)
 
     plt.figure(figsize=tuple(graphics.normal_figsize))
     x = np.arange(len(labels))
@@ -236,15 +258,14 @@ def combined_line_plot(metric_name, translation_dictionary, remove_outliers):
     # Plotar o cliente uma única vez
     plt.errorbar(
         x, c_means, yerr=c_deviations,
-        marker='o', linestyle='-', color='black', linewidth=2, capsize=4,
-        label='Clientes'
+        marker=graphics.client.marker,
+        linestyle=graphics.client.linestyle,
+        color=graphics.client.color,
+        linewidth=graphics.lines.linewidth,
+        capsize=graphics.lines.capsize,
+        label=graphics.client.label
     )
 
-    # Estilos para diferenciar as estratégias do servidor
-    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2']
-    markers = ['s', '^', 'v', 'D', 'p', '*', 'X']
-
-    color_idx = 0
     for strategy in simulation.aggregation_strategies:
         if strategy not in server_aggregated:
             continue
@@ -254,25 +275,30 @@ def combined_line_plot(metric_name, translation_dictionary, remove_outliers):
             continue
 
         s_means, s_deviations, _, _ = s_data
-        strategy_label = translation_dictionary.get(strategy, strategy.replace("_", " ").title())
-        current_color = colors[color_idx % len(colors)]
-        current_marker = markers[color_idx % len(markers)]
+
+        strategy_cfg = graphics.strategies.get(strategy)
+        s_color = strategy_cfg.color if strategy_cfg else '#333333'
+        s_marker = strategy_cfg.marker if strategy_cfg else 'o'
+        s_label = strategy_cfg.label if strategy_cfg else strategy.replace("_", " ").title()
 
         plt.errorbar(
             x, s_means, yerr=s_deviations,
-            marker=current_marker, linestyle='--', color=current_color, linewidth=2, capsize=4,
-            label=f'Servidor ({strategy_label})'
+            marker=s_marker,
+            linestyle=graphics.lines.server_linestyle,
+            color=s_color,
+            linewidth=graphics.lines.linewidth,
+            capsize=graphics.lines.capsize,
+            label=graphics.server.label_combined_format.format(strategy=s_label)
         )
-        color_idx += 1
 
     plt.xticks(x, labels)
-    plt.xlabel("Privacy Level (ε)", fontsize=graphics.fontsize, fontweight=graphics.fontweight)
+    plt.xlabel(graphics.labels.x.privacy_level, fontsize=graphics.label_fontsize, fontweight=graphics.fontweight)
     
-    ylabel_text = translation_dictionary.get(metric_name, metric_name)
-    plt.ylabel(ylabel_text, fontsize=graphics.fontsize, fontweight=graphics.fontweight)
+    ylabel_text = getattr(graphics.labels.y, metric_name, metric_name)
+    plt.ylabel(ylabel_text, fontsize=graphics.label_fontsize, fontweight=graphics.fontweight)
 
     plt.tick_params(axis='both', labelsize=graphics.ticks_fontsize)
-    plt.legend(fontsize=graphics.fontsize - 2)
+    plt.legend(fontsize=graphics.legend_fontsize)
 
     output_dir = paths.graphics_path / "simulation"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -304,7 +330,7 @@ def load_external_sbdt_data(csv_path, target_metric, remove_outliers):
 
     return outliers_manager(remove_outliers, aggregated_data)
 
-def combined_line_plot_with_external(metric_name, translation_dictionary, remove_outliers, csv_path=None):
+def combined_line_plot_with_external(metric_name, remove_outliers, csv_path=None):
     if csv_path is None:
         csv_path = paths.base_path / "external_results" / "cross_validation_results.csv"
 
@@ -340,7 +366,8 @@ def combined_line_plot_with_external(metric_name, translation_dictionary, remove
         return
 
     c_means, c_deviations, c_labels, _ = clients_data
-    labels = rename_epsilon(c_labels, translation_dictionary)
+    epsilon_translations = {"no-diff-privacy": graphics.labels.epsilon.no_diff_privacy}
+    labels = rename_epsilon(c_labels, epsilon_translations)
 
     plt.figure(figsize=tuple(graphics.normal_figsize))
     x = np.arange(len(labels))
@@ -348,15 +375,14 @@ def combined_line_plot_with_external(metric_name, translation_dictionary, remove
     # Plotar o cliente uma única vez
     plt.errorbar(
         x, c_means, yerr=c_deviations,
-        marker='o', linestyle='-', color='black', linewidth=2, capsize=4,
-        label='Clientes'
+        marker=graphics.client.marker,
+        linestyle=graphics.client.linestyle,
+        color=graphics.client.color,
+        linewidth=graphics.lines.linewidth,
+        capsize=graphics.lines.capsize,
+        label=graphics.client.label
     )
 
-    # Estilos para diferenciar as estratégias do servidor
-    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2']
-    markers = ['s', '^', 'v', 'D', 'p', '*', 'X']
-
-    color_idx = 0
     for strategy in simulation.aggregation_strategies:
         if strategy not in server_aggregated:
             continue
@@ -366,37 +392,45 @@ def combined_line_plot_with_external(metric_name, translation_dictionary, remove
             continue
 
         s_means, s_deviations, _, _ = s_data
-        strategy_label = translation_dictionary.get(strategy, strategy.replace("_", " ").title())
-        current_color = colors[color_idx % len(colors)]
-        current_marker = markers[color_idx % len(markers)]
+
+        strategy_cfg = graphics.strategies.get(strategy)
+        s_color = strategy_cfg.color if strategy_cfg else '#333333'
+        s_marker = strategy_cfg.marker if strategy_cfg else 'o'
+        s_label = strategy_cfg.label if strategy_cfg else strategy.replace("_", " ").title()
 
         plt.errorbar(
             x, s_means, yerr=s_deviations,
-            marker=current_marker, linestyle='--', color=current_color, linewidth=2, capsize=4,
-            label=f'Servidor ({strategy_label})'
+            marker=s_marker,
+            linestyle=graphics.lines.server_linestyle,
+            color=s_color,
+            linewidth=graphics.lines.linewidth,
+            capsize=graphics.lines.capsize,
+            label=graphics.server.label_combined_format.format(strategy=s_label)
         )
-        color_idx += 1
 
     # Plotar a solução externa (SBDT)
     if "SBDT" in sbdt_aggregated:
         sbdt_data = extract_data_for_plot(sbdt_aggregated, "SBDT", metric_name)
         if sbdt_data:
             sbdt_means, sbdt_deviations, _, _ = sbdt_data
-            sbdt_label = translation_dictionary.get("SBDT", "SBDT")
             plt.errorbar(
                 x, sbdt_means, yerr=sbdt_deviations,
-                marker='P', linestyle='-.', color='#17becf', linewidth=2, capsize=4,
-                label=sbdt_label
+                marker=graphics.sbdt.marker,
+                linestyle=graphics.sbdt.linestyle,
+                color=graphics.sbdt.color,
+                linewidth=graphics.lines.linewidth,
+                capsize=graphics.lines.capsize,
+                label=graphics.sbdt.label
             )
 
     plt.xticks(x, labels)
-    plt.xlabel("Privacy Level (ε)", fontsize=graphics.fontsize, fontweight=graphics.fontweight)
+    plt.xlabel(graphics.labels.x.privacy_level, fontsize=graphics.label_fontsize, fontweight=graphics.fontweight)
     
-    ylabel_text = translation_dictionary.get(metric_name, metric_name)
-    plt.ylabel(ylabel_text, fontsize=graphics.fontsize, fontweight=graphics.fontweight)
+    ylabel_text = getattr(graphics.labels.y, metric_name, metric_name)
+    plt.ylabel(ylabel_text, fontsize=graphics.label_fontsize, fontweight=graphics.fontweight)
 
     plt.tick_params(axis='both', labelsize=graphics.ticks_fontsize)
-    plt.legend(fontsize=graphics.fontsize - 2)
+    plt.legend(fontsize=graphics.legend_fontsize)
 
     output_dir = paths.graphics_path / "simulation"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -407,30 +441,6 @@ def combined_line_plot_with_external(metric_name, translation_dictionary, remove
     plt.close()
 
 def plot_simulation_graphics():
-    translation_dictionary = {
-        "initial_mse" : "Local Model MSE (Wh²)",
-        "initial_rmse" : "Local Model RMSE (Wh)",
-        "final_mse" : "Global Model MSE (Wh²)",
-        "final_rmse" : "Global Model RMSE (Wh)",
-        "cross_validation_mse" : "Cross Validation MSE (Wh²)",
-        "cross_validation_rmse" : "Cross Validation RMSE (Wh)",
-        "ensemble_all_trees" : "Ensemble All Trees",
-        "ensemble_threshold_trees" : "Ensemble Threshold Trees",
-        "merge_all_trees" : "Merge All Trees",
-        "merge_threshold_trees" : "Merge Threshold Trees",
-        "no-diff-privacy" : "No Diff Priv",
-        "10.0" : "10.0",
-        "7.0" : "7.0",
-        "5.0" : "5.0",
-        "3.0" : "3.0",
-        "1.0" : "1.0",
-        "0.75" : "0.75",
-        "0.5" : "0.5",
-        "0.25" : "0.25",
-        "0.1" : "0.1",
-        "SBDT" : "SBDT (Solução Externa)",
-    }
-
     remove_outliers = graphics.remove_outliers
     
     for strategy in simulation.aggregation_strategies:
@@ -438,7 +448,6 @@ def plot_simulation_graphics():
             box_plot(
                 target_strategy=strategy, 
                 metric_name=metric, 
-                translation_dictionary=translation_dictionary,
                 user_type="clients",
                 remove_outliers=remove_outliers
             )
@@ -446,20 +455,17 @@ def plot_simulation_graphics():
             line_plot(
                 target_strategy=strategy, 
                 metric_name=metric, 
-                translation_dictionary=translation_dictionary,
                 remove_outliers=remove_outliers
             )
 
-    for metric in ["cross_validation_rmse", "cross_validation_mse"]:
-        combined_line_plot(
-            metric_name=metric,
-            translation_dictionary=translation_dictionary,
-            remove_outliers=remove_outliers
-        )
+    # for metric in ["cross_validation_rmse", "cross_validation_mse"]:
+    #     combined_line_plot(
+    #         metric_name=metric,
+    #         remove_outliers=remove_outliers
+    #     )
 
     for metric in ["cross_validation_rmse", "cross_validation_mse"]:
         combined_line_plot_with_external(
             metric_name=metric,
-            translation_dictionary=translation_dictionary,
             remove_outliers=remove_outliers
         )

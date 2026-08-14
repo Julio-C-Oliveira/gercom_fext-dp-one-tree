@@ -7,99 +7,74 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 
 from fedt.app.settings import paths
-from fedt.scripts.settings import graphics
+from fedt.scripts_for_graphics.settings import graphics
 
 logger = logging.getLogger("GRAPHICS")
-
-# Paleta de cores distintas para o Modelo Local e as 4 Estratégias Globais
-SERIES_COLORS = {
-    "local": "#9467bd",                       # Roxo para o modelo local
-    "ensemble_all_trees": "#1f77b4",        # Azul
-    "ensemble_threshold_trees": "#ff7f0e",  # Laranja
-    "merge_all_trees": "#2ca02c",           # Verde
-    "merge_threshold_trees": "#d62728"      # Vermelho
-}
-
-SERIES_MARKERS = {
-    "local": "v",
-    "ensemble_all_trees": "o",
-    "ensemble_threshold_trees": "s",
-    "merge_all_trees": "^",
-    "merge_threshold_trees": "D"
-}
-
-SERIES_LABELS = {
-    "local": "Local Model (Client)",
-    "ensemble_all_trees": "Ensemble All Trees",
-    "ensemble_threshold_trees": "Ensemble Threshold Trees",
-    "merge_all_trees": "Merge All Trees",
-    "merge_threshold_trees": "Merge Threshold Trees"
-}
 
 METRIC_CONFIGS = {
     "hoyer_sparsity": {
         "title": "Hoyer Sparsity Index",
-        "ylabel": "Hoyer Sparsity Index",
+        "ylabel_key": "hoyer_sparsity",
         "filename": "hoyer_sparsity",
         "stat": "median"
     },
     "gini_index": {
         "title": "Gini Index of Attribution",
-        "ylabel": "Gini Index",
+        "ylabel_key": "gini_index",
         "filename": "gini_index",
         "stat": "median"
     },
     "mae_fidelity": {
         "title": "Prediction Fidelity (MAE vs. Non-Private Baseline)",
-        "ylabel": "MAE",
+        "ylabel_key": "mae_fidelity",
         "filename": "fidelity_mae",
         "stat": "median"
     },
     "spearman_rank_corr": {
         "title": "Feature Rank Stability (Spearman ρ)",
-        "ylabel": "Spearman Correlation (ρ)",
+        "ylabel_key": "spearman_rank_corr",
         "filename": "rank_spearman",
         "stat": "median"
     },
     "jaccard_top3": {
         "title": "Top-3 Feature Rank Stability (Jaccard)",
-        "ylabel": "Jaccard Similarity",
+        "ylabel_key": "jaccard_top3",
         "filename": "rank_jaccard_top3",
-        "stat": "mean_std"  # Média e Desvio Padrão conforme solicitado
+        "stat": "mean_std"
     },
     "jaccard_top5": {
         "title": "Top-5 Feature Rank Stability (Jaccard)",
-        "ylabel": "Jaccard Similarity",
+        "ylabel_key": "jaccard_top5",
         "filename": "rank_jaccard_top5",
-        "stat": "mean_std"  # Média e Desvio Padrão conforme solicitado
+        "stat": "mean_std"
     },
     "cosine_distance": {
         "title": "SHAP Attribution Cosine Distance vs. Baseline",
-        "ylabel": "Cosine Distance",
+        "ylabel_key": "cosine_distance",
         "filename": "attribution_cosine_distance",
         "stat": "median"
     },
     "local_sensitivity": {
         "title": "Local Explanation Sensitivity (Lipschitz)",
-        "ylabel": "Sensitivity Ratio",
+        "ylabel_key": "local_sensitivity",
         "filename": "local_sensitivity",
         "stat": "median"
     },
     "gap_cosine_distance": {
         "title": "Federated Explanation Gap (Cosine Distance)",
-        "ylabel": "Cosine Distance (Local vs. Global)",
+        "ylabel_key": "gap_cosine_distance",
         "filename": "federated_gap_cosine_distance",
         "stat": "median"
     },
     "gap_jaccard_top3": {
         "title": "Federated Explanation Gap (Top-3 Jaccard)",
-        "ylabel": "Top-3 Jaccard Similarity (Local vs. Global)",
+        "ylabel_key": "gap_jaccard_top3",
         "filename": "federated_gap_jaccard_top3",
         "stat": "mean_std"
     },
     "gap_spearman_rank_corr": {
         "title": "Federated Explanation Gap (Spearman ρ)",
-        "ylabel": "Spearman Correlation (Local vs. Global)",
+        "ylabel_key": "gap_spearman_rank_corr",
         "filename": "federated_gap_spearman_rank_corr",
         "stat": "median"
     }
@@ -127,7 +102,7 @@ def load_summary_data(json_file):
     eps_list = sort_epsilons(eps_set)
 
     # Rótulo para o eixo X
-    labels = ["No Diff Priv." if e == -1.0 else str(e) for e in eps_list]
+    labels = [graphics.labels.epsilon.no_diff_privacy if e == -1.0 else str(e) for e in eps_list]
 
     return records, eps_list, labels
 
@@ -198,30 +173,38 @@ def render_unified_line_plot(x_indices, series_dict, x_labels, title, ylabel, ou
     fig, ax = plt.subplots(figsize=tuple(graphics.normal_figsize))
 
     for series_key, data in series_dict.items():
-        color = SERIES_COLORS.get(series_key, "#333333")
-        marker = SERIES_MARKERS.get(series_key, "o")
-        label = SERIES_LABELS.get(series_key, series_key)
+        if series_key == "local":
+            color = graphics.client.color
+            marker = graphics.client.marker
+            label = graphics.client.label
+            linestyle = graphics.client.linestyle
+        else:
+            strategy_cfg = graphics.strategies.get(series_key)
+            color = strategy_cfg.color if strategy_cfg else '#333333'
+            marker = strategy_cfg.marker if strategy_cfg else 'o'
+            label = strategy_cfg.label if strategy_cfg else series_key.replace("_", " ").title()
+            linestyle = graphics.lines.server_linestyle
 
         ax.errorbar(
             x_indices,
             data["center"],
             yerr=data["yerr"],
             marker=marker,
-            linestyle="-",
+            linestyle=linestyle,
             color=color,
-            linewidth=2,
-            capsize=4,
-            capthick=1.2,
+            linewidth=graphics.lines.linewidth,
+            capsize=graphics.lines.capsize,
+            capthick=graphics.lines.capthick,
             label=label
         )
 
-    ax.set_xlabel("Privacy Level (ε)", fontsize=graphics.fontsize, fontweight=graphics.fontweight)
-    ax.set_ylabel(ylabel, fontsize=graphics.fontsize, fontweight=graphics.fontweight)
+    ax.set_xlabel(graphics.labels.x.privacy_level, fontsize=graphics.label_fontsize, fontweight=graphics.fontweight)
+    ax.set_ylabel(ylabel, fontsize=graphics.label_fontsize, fontweight=graphics.fontweight)
     ax.set_xticks(x_indices)
     ax.set_xticklabels(x_labels, fontsize=graphics.ticks_fontsize)
     ax.tick_params(axis='both', labelsize=graphics.ticks_fontsize)
     ax.grid(True, linestyle=graphics.grid_linestyle, alpha=graphics.grid_alpha)
-    ax.legend(fontsize=graphics.ticks_fontsize - 1, loc="best")
+    ax.legend(fontsize=graphics.legend_fontsize, loc="best")
 
     plt.tight_layout()
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -238,7 +221,7 @@ def log_structural_complexity(records, eps_list, global_strategies):
 
     # 1. Modelo Local (calculado no nível do cliente)
     for eps in eps_list:
-        eps_str = "No Diff Priv." if eps == -1.0 else f"ε = {eps}"
+        eps_str = graphics.labels.epsilon.no_diff_privacy if eps == -1.0 else f"ε = {eps}"
         matching_recs = [
             rec for rec in records
             if rec["model_level"] == "local" and rec["epsilon"] == eps
@@ -257,7 +240,7 @@ def log_structural_complexity(records, eps_list, global_strategies):
     for strat in global_strategies:
         logger.info(f"--- Estratégia Global: {strat} ---")
         for eps in eps_list:
-            eps_str = "No Diff Priv." if eps == -1.0 else f"ε = {eps}"
+            eps_str = graphics.labels.epsilon.no_diff_privacy if eps == -1.0 else f"ε = {eps}"
             matching_recs = [
                 rec for rec in records
                 if rec["model_level"] == "global" and rec["strategy"] == strat and rec["epsilon"] == eps
@@ -285,17 +268,12 @@ def plot_explainability_eval_graphics():
     records, eps_list, x_labels = load_summary_data(input_file)
     x_indices = np.arange(len(eps_list))
 
-    global_strategies = [
-        "ensemble_all_trees",
-        "ensemble_threshold_trees",
-        "merge_all_trees",
-        "merge_threshold_trees"
-    ]
+    global_strategies = list(graphics.strategies.keys())
 
     # Exibe no terminal a complexidade estrutural das árvores
     log_structural_complexity(records, eps_list, global_strategies)
 
-    # Lista de métricas unificadas (Local + 4 Globais na mesma figura)
+    # Lista de métricas unificadas (Local + Globais na mesma figura)
     unified_metrics = [
         "hoyer_sparsity",
         "gini_index",
@@ -308,7 +286,7 @@ def plot_explainability_eval_graphics():
     ]
 
     # --------------------------------------------------------------------------
-    # 1. GRÁFICOS UNIFICADOS (LOCAL MODEL + 4 GLOBAL STRATEGIES)
+    # 1. GRÁFICOS UNIFICADOS (LOCAL MODEL + GLOBAL STRATEGIES)
     # --------------------------------------------------------------------------
     for metric_key in unified_metrics:
         cfg = METRIC_CONFIGS[metric_key]
@@ -316,22 +294,23 @@ def plot_explainability_eval_graphics():
 
         # Serie do Modelo Local
         center_loc, yerr_loc = compute_series_stats(
-            records, metric_key, "local", "ensemble_all_trees", eps_list, stat_type=cfg["stat"]
+            records, metric_key, "local", global_strategies[0], eps_list, stat_type=cfg["stat"]
         )
         series_dict["local"] = {"center": center_loc, "yerr": yerr_loc}
 
-        # Series das 4 Estratégias Globais
+        # Series das Estratégias Globais
         for strat in global_strategies:
             center_glob, yerr_glob = compute_series_stats(
                 records, metric_key, "global", strat, eps_list, stat_type=cfg["stat"]
             )
             series_dict[strat] = {"center": center_glob, "yerr": yerr_glob}
 
+        ylabel = getattr(graphics.labels.y, cfg["ylabel_key"], cfg["ylabel_key"])
         out_path = output_dir / f"{cfg['filename']}_vs_epsilon.pdf"
-        render_unified_line_plot(x_indices, series_dict, x_labels, cfg["title"], cfg["ylabel"], out_path)
+        render_unified_line_plot(x_indices, series_dict, x_labels, cfg["title"], ylabel, out_path)
 
     # --------------------------------------------------------------------------
-    # 2. GRÁFICOS DO GAP DE EXPLICABILIDADE FEDERADA (AS 4 ESTRATÉGIAS GLOBAIS)
+    # 2. GRÁFICOS DO GAP DE EXPLICABILIDADE FEDERADA
     # --------------------------------------------------------------------------
     gap_metrics = ["gap_cosine_distance", "gap_jaccard_top3", "gap_spearman_rank_corr"]
 
@@ -345,8 +324,9 @@ def plot_explainability_eval_graphics():
             )
             series_dict[strat] = {"center": center_gap, "yerr": yerr_gap}
 
+        ylabel = getattr(graphics.labels.y, cfg["ylabel_key"], cfg["ylabel_key"])
         out_path = output_dir / f"{cfg['filename']}_vs_epsilon.pdf"
-        render_unified_line_plot(x_indices, series_dict, x_labels, cfg["title"], cfg["ylabel"], out_path)
+        render_unified_line_plot(x_indices, series_dict, x_labels, cfg["title"], ylabel, out_path)
 
     logger.info(f"✅ Todos os gráficos foram unificados e salvos com sucesso em: {output_dir}")
 
