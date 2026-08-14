@@ -14,6 +14,7 @@ import numpy as np
 from fedt.app.settings import settings, paths
 
 from fedt.app.server_strategy import Strategy
+from fedt.app.server_utils import build_global_test_data, cross_validation_test # Não use esses dados para validação de modelos de agregação.
 from fedt.app import utils
 from fedt.app.utils import create_specific_result_folder
 from fedt.service import fedT_pb2
@@ -117,6 +118,11 @@ class FedT(fedT_pb2_grpc.FedTServicer):
 
         self.current_round_clients_data = {}
         self.all_execution_data = {}
+
+        self.cross_validation_test_data = build_global_test_data(
+            self.clientes_esperados,
+            self.seed
+        ) # Não será utilizado na simulação, somente no teste isolado de desepenho.
 
         if epsilon >= 0:
             base_file_name = f"{self.aggregation_strategy}_{epsilon}"
@@ -283,6 +289,7 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         metrics_to_aggregate = [
             "client_tree_size", "server_tree_size", "fit_time",
             "initial_rmse", "initial_mse", "final_rmse", "final_mse",
+            "cross_validation_rmse", "cross_validation_mse",
             "round_time", "evaluate_time", "inference_time"
         ]
 
@@ -308,6 +315,8 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         return aggregated_metrics
 
     def save_round_results(self):
+        server_cv_results = cross_validation_test(self.global_model, self.cross_validation_test_data)
+
         # Calcular as métricas agregadas dos clientes:
         aggregated_client_metrics = self._calculate_aggregated_metrics()
 
@@ -315,6 +324,8 @@ class FedT(fedT_pb2_grpc.FedTServicer):
         server_metrics = {
             "average_client_runtime": average_runtime(self.runtime_clients),
             "aggregation_time": self.aggregation_time,
+            "global_model_cv_rmse": server_cv_results["rmse"],
+            "global_model_cv_mse": server_cv_results["mse"],
             **aggregated_client_metrics
         }
 
@@ -348,6 +359,10 @@ class FedT(fedT_pb2_grpc.FedTServicer):
             logger.info(f"O cliente {request.client_ID} finalizou round. Clientes respondidos: {self.clientes_respondidos}/{self.clientes_esperados}")
 
             logger.info(f"Registrando as métricas do client: {request.client_ID}")
+
+            client_tree = next((tree for cid, tree in self.trees_warehouse if cid == request.client_ID), None)
+            cv_results = cross_validation_test(client_tree, self.cross_validation_test_data)
+
             self.current_round_clients_data[f"client_{request.client_ID}"] = {
                 "client_tree_size": request.client_tree_size,
                 "server_tree_size": request.server_tree_size,
@@ -358,6 +373,8 @@ class FedT(fedT_pb2_grpc.FedTServicer):
                 "final_rmse": np.sqrt(request.final_mse),
                 "final_mse": request.final_mse,
                 "final_pearson": request.final_pearson,
+                "cross_validation_rmse": cv_results["rmse"],
+                "cross_validation_mse": cv_results["mse"],
                 "round_time": request.round_time,
                 "round_start_time": request.round_start_time,
                 "round_end_time": request.round_end_time,
