@@ -1,5 +1,6 @@
 import os
 import json
+import csv
 import numpy as np
 import matplotlib.pyplot as plt
 from collections import defaultdict
@@ -281,6 +282,130 @@ def combined_line_plot(metric_name, translation_dictionary, remove_outliers):
     plt.savefig(f"{output_dir}/all_strategies_{metric_name}_combined_lineplot.pdf")
     plt.close()
 
+def load_external_sbdt_data(csv_path, target_metric, remove_outliers):
+    aggregated_data = defaultdict(lambda: defaultdict(list))
+    metric_col = "rmse" if "rmse" in target_metric else "mse"
+
+    if not os.path.exists(csv_path):
+        logger.warning(f"Arquivo de resultados externos não encontrado: {csv_path}")
+        return aggregated_data
+
+    with open(csv_path, 'r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            try:
+                eps_raw = float(row['epsilon'])
+                epsilon_key = "no-diff-privacy" if eps_raw < 0 else str(row['epsilon'])
+                val = float(row[metric_col])
+                aggregated_data["SBDT"][epsilon_key].append(val)
+            except (ValueError, KeyError) as e:
+                logger.warning(f"Erro ao processar linha do CSV {csv_path}: {e}")
+                continue
+
+    return outliers_manager(remove_outliers, aggregated_data)
+
+def combined_line_plot_with_external(metric_name, translation_dictionary, remove_outliers, csv_path=None):
+    if csv_path is None:
+        csv_path = paths.base_path / "external_results" / "cross_validation_results.csv"
+
+    caminho_base = paths.results_folder
+    
+    clients_aggregated = load_simulation_data(
+        base_path=caminho_base,
+        target_metric=metric_name,
+        user_type="clients",
+        remove_outliers=remove_outliers
+    )
+    server_aggregated = load_simulation_data(
+        base_path=caminho_base,
+        target_metric=metric_name,
+        user_type="server",
+        remove_outliers=remove_outliers
+    )
+    sbdt_aggregated = load_external_sbdt_data(
+        csv_path=csv_path,
+        target_metric=metric_name,
+        remove_outliers=remove_outliers
+    )
+
+    if not clients_aggregated or not server_aggregated:
+        logger.warning(f"Dados insuficientes da simulação para o gráfico combinado com externo da métrica '{metric_name}'.")
+        return
+
+    first_strategy = list(clients_aggregated.keys())[0]
+    clients_data = extract_data_for_plot(clients_aggregated, first_strategy, metric_name)
+    
+    if not clients_data:
+        logger.warning(f"Não foi possível extrair dados dos clientes para a métrica '{metric_name}'.")
+        return
+
+    c_means, c_deviations, c_labels, _ = clients_data
+    labels = rename_epsilon(c_labels, translation_dictionary)
+
+    plt.figure(figsize=tuple(graphics.normal_figsize))
+    x = np.arange(len(labels))
+
+    # Plotar o cliente uma única vez
+    plt.errorbar(
+        x, c_means, yerr=c_deviations,
+        marker='o', linestyle='-', color='black', linewidth=2, capsize=4,
+        label='Clientes'
+    )
+
+    # Estilos para diferenciar as estratégias do servidor
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2']
+    markers = ['s', '^', 'v', 'D', 'p', '*', 'X']
+
+    color_idx = 0
+    for strategy in simulation.aggregation_strategies:
+        if strategy not in server_aggregated:
+            continue
+
+        s_data = extract_data_for_plot(server_aggregated, strategy, metric_name)
+        if not s_data:
+            continue
+
+        s_means, s_deviations, _, _ = s_data
+        strategy_label = translation_dictionary.get(strategy, strategy.replace("_", " ").title())
+        current_color = colors[color_idx % len(colors)]
+        current_marker = markers[color_idx % len(markers)]
+
+        plt.errorbar(
+            x, s_means, yerr=s_deviations,
+            marker=current_marker, linestyle='--', color=current_color, linewidth=2, capsize=4,
+            label=f'Servidor ({strategy_label})'
+        )
+        color_idx += 1
+
+    # Plotar a solução externa (SBDT)
+    if "SBDT" in sbdt_aggregated:
+        sbdt_data = extract_data_for_plot(sbdt_aggregated, "SBDT", metric_name)
+        if sbdt_data:
+            sbdt_means, sbdt_deviations, _, _ = sbdt_data
+            sbdt_label = translation_dictionary.get("SBDT", "SBDT")
+            plt.errorbar(
+                x, sbdt_means, yerr=sbdt_deviations,
+                marker='P', linestyle='-.', color='#17becf', linewidth=2, capsize=4,
+                label=sbdt_label
+            )
+
+    plt.xticks(x, labels)
+    plt.xlabel("Privacy Level (ε)", fontsize=graphics.fontsize, fontweight=graphics.fontweight)
+    
+    ylabel_text = translation_dictionary.get(metric_name, metric_name)
+    plt.ylabel(ylabel_text, fontsize=graphics.fontsize, fontweight=graphics.fontweight)
+
+    plt.tick_params(axis='both', labelsize=graphics.ticks_fontsize)
+    plt.legend(fontsize=graphics.fontsize - 2)
+
+    output_dir = paths.graphics_path / "simulation"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    plt.grid(True, linestyle=graphics.grid_linestyle, alpha=graphics.grid_alpha)
+    plt.tight_layout()
+    plt.savefig(f"{output_dir}/all_strategies_with_sbdt_{metric_name}_combined_lineplot.pdf")
+    plt.close()
+
 def plot_simulation_graphics():
     translation_dictionary = {
         "initial_mse" : "Local Model MSE (Wh²)",
@@ -303,6 +428,7 @@ def plot_simulation_graphics():
         "0.5" : "0.5",
         "0.25" : "0.25",
         "0.1" : "0.1",
+        "SBDT" : "SBDT (Solução Externa)",
     }
 
     remove_outliers = graphics.remove_outliers
@@ -326,6 +452,13 @@ def plot_simulation_graphics():
 
     for metric in ["cross_validation_rmse", "cross_validation_mse"]:
         combined_line_plot(
+            metric_name=metric,
+            translation_dictionary=translation_dictionary,
+            remove_outliers=remove_outliers
+        )
+
+    for metric in ["cross_validation_rmse", "cross_validation_mse"]:
+        combined_line_plot_with_external(
             metric_name=metric,
             translation_dictionary=translation_dictionary,
             remove_outliers=remove_outliers
