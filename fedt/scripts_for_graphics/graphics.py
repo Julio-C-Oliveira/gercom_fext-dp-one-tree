@@ -20,8 +20,8 @@ if __name__ == "__main__":
 
     graphics = [
         ("Simulação Base", plot_simulation_graphics),
-        # ("MIA", plot_membership_inference_attack_graphics),
-        # ("Reconstruct Attack", plot_data_reconstruction_attack_graphics),
+        ("MIA", plot_membership_inference_attack_graphics),
+        ("Reconstruct Attack", plot_data_reconstruction_attack_graphics),
         # ("SHAP", plot_shap_analysis_graphics),
         # ("XAI", plot_explainability_eval_graphics),
         # ("Dropout", plot_client_dropout_analysis_graphics)

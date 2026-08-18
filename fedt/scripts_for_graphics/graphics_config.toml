@@ -1,7 +1,7 @@
 [graphics]
 # Dimensões das Figuras [largura, altura]
 wide_figsize = [10, 6]
-normal_figsize = [8, 5]
+normal_figsize = [8, 6]
 
 # Fontes e Tamanhos
 label_fontsize = 16
@@ -88,10 +88,10 @@ cross_validation_rmse = "Cross Validation RMSE (Wh)"
 dropout_relative_mse = "Error Increase Relative to Baseline %"
 
 # Ataques
-dra_mse = "Data Reconstruction Attack MSE (Wh²)"
-dra_rmse = "Data Reconstruction Attack RMSE (Wh)"
-mia_accuracy = "MIA Attack Accuracy"
-mia_auc = "MIA Attack AUC-ROC"
+dra_mse = "DRA MSE (Wh²)"
+dra_rmse = "DRA RMSE (Wh)"
+mia_accuracy = "MIA Accuracy"
+mia_auc = "MIA AUC-ROC"
 
 # Explicabilidade (XAI)
 hoyer_sparsity = "Hoyer Sparsity Index"
