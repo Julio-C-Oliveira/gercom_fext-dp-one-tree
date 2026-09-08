@@ -341,8 +341,16 @@ def compute_attribution_distance(shap_base, shap_eval):
     dot_products = np.sum(shap_base * shap_eval, axis=1)
     norm_base = np.linalg.norm(shap_base, axis=1)
     norm_eval = np.linalg.norm(shap_eval, axis=1)
+
+    both_zero = (norm_base < 1e-12) & (norm_eval < 1e-12)
+    one_zero = ((norm_base < 1e-12) ^ (norm_eval < 1e-12))
+
     denom = np.maximum(norm_base * norm_eval, 1e-12)
     cosine_sim = dot_products / denom
+
+    cosine_sim[both_zero] = 1.0
+    cosine_sim[one_zero] = 0.0
+
     cosine_dists = 1.0 - np.clip(cosine_sim, -1.0, 1.0)
     avg_cosine = float(np.mean(cosine_dists))
 
