@@ -104,6 +104,7 @@ class GraphicsConfig(BaseModel):
     server: ServerConfig
     dropout: DropoutConfig
     sbdt: StyleConfig
+    fext: StyleConfig
     strategies: dict[str, StrategyConfig]
     labels: LabelsConfig
 

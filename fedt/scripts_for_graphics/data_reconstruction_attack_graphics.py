@@ -72,12 +72,12 @@ def dra_line_plot_with_external(fedt_dict, sbdt_dict, file_name, y_label):
 
     plt.errorbar(
         x_all, fedt_means, yerr=fedt_stds,
-        marker=graphics.client.marker,
-        linestyle=graphics.client.linestyle,
-        color=graphics.client.color,
+        marker=graphics.fext.marker,
+        linestyle=graphics.fext.linestyle,
+        color=graphics.fext.color,
         linewidth=graphics.lines.linewidth,
         capsize=graphics.lines.capsize,
-        label="FEDT"
+        label=graphics.fext.label
     )
 
     if sbdt_dict:

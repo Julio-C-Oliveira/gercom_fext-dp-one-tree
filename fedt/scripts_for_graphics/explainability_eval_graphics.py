@@ -168,6 +168,76 @@ def compute_series_stats(records, target_metric, model_level, strategy, eps_list
     return center_arr, yerr_arr
 
 
+def load_external_explainability_data(summary_path=None, detailed_path=None):
+    """Carrega os dados externos de explicabilidade do SBDT (prioriza summary.json, faz fallback para detailed.json)."""
+    if summary_path is None:
+        summary_path = paths.base_path / "external_results" / "explainability_summary.json"
+    if detailed_path is None:
+        detailed_path = paths.base_path / "external_results" / "explainability_detailed.json"
+
+    if summary_path.exists():
+        with open(summary_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    elif detailed_path.exists():
+        with open(detailed_path, "r", encoding="utf-8") as f:
+            detailed_data = json.load(f)
+        records = []
+        for seed_key, eps_dict in detailed_data.items():
+            for eps_key, rec in eps_dict.items():
+                records.append(rec)
+        return records
+    else:
+        logger.warning(f"Nenhum arquivo de resultados externos de explicabilidade foi encontrado ({summary_path} ou {detailed_path}).")
+        return []
+
+
+def compute_sbdt_series_stats(sbdt_records, target_metric, eps_list, stat_type="mean_std"):
+    """
+    Calcula estatísticas (Média/STD ou Mediana/Quartis) para os dados externos do SBDT por epsilon.
+    """
+    center_vals = []
+    yerr_list = []
+
+    for eps in eps_list:
+        matching_recs = [
+            rec[target_metric]
+            for rec in sbdt_records
+            if abs(rec["epsilon"] - eps) < 1e-5
+            and target_metric in rec
+            and rec[target_metric] is not None
+            and not np.isnan(rec[target_metric])
+        ]
+
+        if len(matching_recs) > 0:
+            if stat_type == "mean_std":
+                mean_val = float(np.mean(matching_recs))
+                std_val = float(np.std(matching_recs))
+                center_vals.append(mean_val)
+                yerr_list.append(std_val)
+            else:
+                med = float(np.median(matching_recs))
+                q1 = float(np.percentile(matching_recs, 25))
+                q3 = float(np.percentile(matching_recs, 75))
+                center_vals.append(med)
+                yerr_list.append([med - q1, q3 - med])
+        else:
+            center_vals.append(np.nan)
+            if stat_type == "mean_std":
+                yerr_list.append(np.nan)
+            else:
+                yerr_list.append([np.nan, np.nan])
+
+    center_arr = np.array(center_vals)
+    if stat_type == "mean_std":
+        yerr_arr = np.array(yerr_list)
+    else:
+        lower = [y[0] for y in yerr_list]
+        upper = [y[1] for y in yerr_list]
+        yerr_arr = [np.array(lower), np.array(upper)]
+
+    return center_arr, yerr_arr
+
+
 def render_unified_line_plot(x_indices, series_dict, x_labels, title, ylabel, output_path):
     """Renderiza gráfico de linhas unificado com Mediana/Q1-Q3 ou Média/STD."""
     fig, ax = plt.subplots(figsize=tuple(graphics.normal_figsize))
@@ -178,6 +248,11 @@ def render_unified_line_plot(x_indices, series_dict, x_labels, title, ylabel, ou
             marker = graphics.client.marker
             label = graphics.client.label
             linestyle = graphics.client.linestyle
+        elif series_key == "sbdt":
+            color = graphics.sbdt.color
+            marker = graphics.sbdt.marker
+            label = graphics.sbdt.label
+            linestyle = graphics.sbdt.linestyle
         else:
             strategy_cfg = graphics.strategies.get(series_key)
             color = strategy_cfg.color if strategy_cfg else '#333333'
@@ -268,6 +343,8 @@ def plot_explainability_eval_graphics():
     records, eps_list, x_labels = load_summary_data(input_file)
     x_indices = np.arange(len(eps_list))
 
+    sbdt_records = load_external_explainability_data()
+
     global_strategies = list(graphics.strategies.keys())
 
     # Exibe no terminal a complexidade estrutural das árvores
@@ -286,7 +363,7 @@ def plot_explainability_eval_graphics():
     ]
 
     # --------------------------------------------------------------------------
-    # 1. GRÁFICOS UNIFICADOS (LOCAL MODEL + GLOBAL STRATEGIES)
+    # 1. GRÁFICOS UNIFICADOS (LOCAL MODEL + GLOBAL STRATEGIES + SBDT EXTERNO)
     # --------------------------------------------------------------------------
     for metric_key in unified_metrics:
         cfg = METRIC_CONFIGS[metric_key]
@@ -306,8 +383,19 @@ def plot_explainability_eval_graphics():
             series_dict[strat] = {"center": center_glob, "yerr": yerr_glob}
 
         ylabel = getattr(graphics.labels.y, cfg["ylabel_key"], cfg["ylabel_key"])
+
+        # Salva o gráfico unificado apenas FEDT
         out_path = output_dir / f"{cfg['filename']}_vs_epsilon.pdf"
         render_unified_line_plot(x_indices, series_dict, x_labels, cfg["title"], ylabel, out_path)
+
+        # Se houver dados do SBDT, adiciona a série e salva o gráfico unificado comparativo
+        if sbdt_records:
+            center_sbdt, yerr_sbdt = compute_sbdt_series_stats(
+                sbdt_records, metric_key, eps_list, stat_type=cfg["stat"]
+            )
+            series_dict["sbdt"] = {"center": center_sbdt, "yerr": yerr_sbdt}
+            out_path_sbdt = output_dir / f"{cfg['filename']}_with_sbdt_vs_epsilon.pdf"
+            render_unified_line_plot(x_indices, series_dict, x_labels, cfg["title"], ylabel, out_path_sbdt)
 
     # --------------------------------------------------------------------------
     # 2. GRÁFICOS DO GAP DE EXPLICABILIDADE FEDERADA
